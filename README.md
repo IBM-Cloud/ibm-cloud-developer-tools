@@ -1,4 +1,4 @@
-# IBM Cloud Developer Tools CLI Installer (idt-installer)
+# IBM Developer Tools CLI Installer (idt-installer)
 
 [![](https://img.shields.io/badge/bluemix-powered-blue.svg)](https://bluemix.net)
 ![Platform](https://img.shields.io/badge/platform-SWIFT-lightgrey.svg?style=flat)
@@ -12,11 +12,15 @@
 * [Uninstall](#uninstall)
 * [Pre-Requisites](#pre-requisites)
 * [Usage](#usage)
+* [Platform specific concerns](#platforms)
+    * [MacOS](#macos)
+    * [Linux](#linux)
+    * [Windows](#windows)
 
 
 ## Summary
 
-This script performs an installation of the IBM Cloud developer CLI environment.
+This script performs an installation of the IBM Developer Tools CLI environment. The IDT is a plugin to the IBM Bluemix CLI. Our general target environment is the IBM Cloud, including public, dedicated, and local hybrid.
 
 
 ## Installation
@@ -26,9 +30,9 @@ To install the IBM Developer Tools CLI, run the following command:
 $ curl https://idt-installer.mybluemix.net/ | bash
 ```
 
-Once complete, there will be three aliass defined to access the IDT:
-- `idt` : Main command line tool for IBM Cloud Native development
-- `idt-update` : Update your IDT tools to the latest version
+Once complete, there will be three aliases defined to access the IDT:
+- `idt` : Main command line tool for IBM cloud native development (shortcut to 'bx dev')
+- `idt-update` : Update your IDT environment to the latest versions
 - `idt-uninstall` : Uninstall the IBM Developer Tools
 
 Note: You will need to reload your bash environment (ie `. ~/.bashrc`) to access these commands.
@@ -36,15 +40,15 @@ Note: You will need to reload your bash environment (ie `. ~/.bashrc`) to access
 
 ## Updating
 
-If you wish to update the IBM Cloud Developer Tools CLI, run `idt-update`. This command is simply an alias defined during install that runs the same install action shown above:
+If you wish to update the IBM Developer Tools CLI, run `idt-update`. This command is simply an alias defined during initial install that runs the installer shown here:
 
 ```
-$ curl https://idt-installer.mybluemix.net/ | bash -c uninstall
+$ curl https://idt-installer.mybluemix.net/ | bash
 ```
 
 ## Uninstall
 
-If you wish to remove the IBM Cloud Developer Tools CLI, run `idt-uninstall`. This command is simply an alias defined during install that runs the following:
+If you wish to remove the IBM Developer Tools CLI, run `idt-uninstall`. This command is simply an alias defined during install that runs the following:
 
 ```
 $ curl https://idt-installer.mybluemix.net/ | bash -c uninstall
@@ -61,12 +65,13 @@ The script will check for the following prereqs, and attempt to install them if 
 
 ## Usage
 ```
-Usage: idt-installer [<action>]
+Usage: idt-installer [<options>]
 
-Where <action> is:
+Where <options> is:
     install             [Default] Perform full install of all needed CLIs and Plugins
     uninstall           Uninstall full IBM Cloud CLI env, including 'bx', and plugins
-    -? | -h | --help    Show this help
+    help | -h | -?      Show this help
+    --nobrew            Force not using brew installer on MacOS
 
 If "install" (or no argument provided), a full CLI installation will occur:
     1. Pre-req check for 'git', 'docker', and 'kubectl'
@@ -76,12 +81,33 @@ If "install" (or no argument provided), a full CLI installation will occur:
 If "uninstall", the IBM Cloud CLI and plugins are removed from the system, including personal metadata.
     Note: Pre-req CLIs listed above are NOT uninstalled.
 
+Chat with us on Slack: https://ibm.biz/IBMCloudNativeSlack
+Submit any issues to : https://github.com/ibm-cloud-tools/idt-installer
+
 ```
 
-### Windows Warning
+## Platforms
 
-Windows has not been tested AT ALL.  If you can try it, and report all failures directly to the author, that will help us get this available for real Windows users.
+The following are platform specific concerns and notes you should be aware of.
 
-Additionally, Windows users must have Bash installed at this time.  If you're willing to port this installer to PowerShell, please do!
+### MacOS
 
+By default, this installer will use the 'brew' installer if it is available. You can use the `--nobrew` argument to disable use of 'brew'. Note that you must be consistent with the use of `--nobrew` when installing, updating, and uninstalling.
+
+### Linux
+
+This script has only been tested on Ubuntu Linux systems, although it should behave properly on other distros. If you run into any issues, please let us know on [Slack](https://ibm.biz/IBMCloudNativeSlack) or file an issue on our [GitHub repo](https://github.com/ibm-cloud-tools/idt-installer).
+
+By default, this installer will use the 'apt' installer if it is available. You can use the `--noapt` argument to disable use of 'apt'. Note that you must be consistent with the use of `--noapt` when installing, updating, and uninstalling.
+
+
+### Windows
+
+**WARNING**: Windows has had **VERY** limited testing.
+If you can try it on a non-critical machine, and report any issues/failures directly to the author, that will help us get this available for real Windows users. 
+
+Additionally, Windows users must have [Bash shell](https://www.windowscentral.com/how-install-bash-shell-command-line-windows-10) installed to use this installer. If you're willing to port this installer to PowerShell, please let us know!
+
+
+We can be reached on [Slack](https://ibm.biz/IBMCloudNativeSlack) or file an issue on our [GitHub repo](https://github.com/ibm-cloud-tools/idt-installer).
 

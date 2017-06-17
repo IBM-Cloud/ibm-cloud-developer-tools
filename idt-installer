@@ -7,20 +7,14 @@
 # Copyright (c) 2017, International Business Machines. All Rights Reserved.
 #------------------------------------------------------------------------------
 
-#------------------------------------------------------------------------------
-#-- Configuration settings. 
-#------------------------------------------------------------------------------
-
 VERSION="0.5"
-PROG="$(basename "$0")" 
-SLACK_URL="https://ibm.biz/IBMCloudNativeSlack"
-GIT_URL="https://github.com/bluemix/idt-installer"
+PROG="IDT Installer" 
 
-#-- External programs, format is "binary, curl package, install url"
+#-- External programs, format is "binary, curl, install url"
 EXT_PROGS=(
   "git,git,https://git-scm.com/downloads"
-  "docker,docker,https://www.docker.com/products/overview"
-  "kubectl,kubernetes-cli,url"
+  "docker,docker,https://docs.docker.com/engine/installation/"
+  "kubectl,kubectl,https://kubernetes.io/docs/tasks/tools/install-kubectl/"
 )
 
 #-- Bluemix plugins to process
@@ -36,12 +30,13 @@ PLUGINS=(
 function help {
   cat <<-!!EOF
   
-	Usage: $PROG [<action>]
+	Usage: ${PROG} [<options>]
   
-	Where <action> is:
+	Where <options> is:
 	  install             [Default] Perform full install of all needed CLIs and Plugins
 	  uninstall           Uninstall full IBM Cloud CLI env, including 'bx', and plugins
-	  -? | -h | --help    Show this help
+	  help | -h | -?      Show this help
+    --nobrew            Force not using 'brew' installer on MacOS
   
 	If "install" (or no argument provided), a full CLI installation will occur:
   1. Pre-req check for 'git', 'docker', and 'kubectl'
@@ -51,8 +46,8 @@ function help {
 	If "uninstall", the IBM Cloud CLI and plugins are removed from the system, including personal metadata.
   Note: Pre-req CLIs listed above are NOT uninstalled.
   
-	Chat with us on Slack: $SLACK_URL
-	Submit any issues to : $GIT_URL
+	Chat with us on Slack: https://ibm.biz/IBMCloudNativeSlack
+	Submit any issues to : https://github.com/ibm-cloud-tools/idt-installer
 
 !!EOF
 }
@@ -115,7 +110,7 @@ function uninstall {
   log "You may be prompted for 'sudo' password."
 
   log "Removing Bluemix CLI..."
-  if [[ "${PLATFORM}" == "Darwin" && ! -z "$BREW" ]]; then
+  if [[ "${PLATFORM}" == "Darwin" && "$USEBREW" == true ]]; then
     brew cask uninstall "caskroom/cask/bluemix-cli"
   else
     sudo rm -f  /usr/local/bin/bluemix
@@ -152,6 +147,7 @@ function uninstall {
 #------------------------------------------------------------------------------
 function install {
   log "Starting Full Installation..."
+  log "Note: You may be prompted for your 'sudo' password during install."
   install_deps
   install_bx
   plugin
@@ -165,32 +161,37 @@ function install {
 
 #------------------------------------------------------------------------------
 function install_deps {
-  has_error=0
+  has_error=false
   for item in "${EXT_PROGS[@]}"; do
     #-- Parse array item into vars
     IFS="," read -r prog_bin prog_brew prog_url <<< "$item"
     log "Checking for external dependency: ${prog_bin}"
     if [[ -z "$(which "$prog_bin")" ]]; then
       log "${prog_bin} not found, attempting to install..."
-
-      if [[ "${PLATFORM}" == "Darwin" && ! -z "$BREW" ]]; then
+      if [[ "$PLATFORM" == "Darwin" && "$USEBREW" == true ]]; then
         brew install "$prog_brew"
+        log  "You should review any setup requirements for '${prog_bin}' from: ${prog_url}"
+      elif [[ "$PLATFORM" != "Windows" && "$prog_bin" == "kubectl" ]]; then
+        curl --progress-bar -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/darwin/amd64/kubectl
+        chmod +x ./kubectl
+        sudo mv ./kubectl /usr/local/bin/kubectl
+        log  "Review any setup requirements for '${prog_bin}' from: ${prog_url}"
       else
-        warn "Manually install '${prog_bin}' from here: ${prog_url}"
-        has_error=1
+        warn "Unable to automatically install '${prog_bin}'"
+        log  "You must manually install '${prog_bin}' from: ${prog_url}"
+        has_error=true
       fi
     fi
   done
-
-  if [[ "$has_error" -eq 1 ]]; then
-    error "One or more prereqs are missing. You must install these prior to using this utility"
+  if [[ "$has_error" == true ]]; then
+    error "One or more prereqs are missing. You must install these prior to using re-running this utility"
   fi
 }
 
 #------------------------------------------------------------------------------
 function install_bx {
   if [[ -z "$(which bluemix)" ]]; then
-    log "Installing IBM Cloud CLI..."
+    log "Installing IBM Cloud 'Bluemix' CLI..."
     log "Finding latest version of Bluemix CLI for platform '${PLATFORM}'..."
     url="http://public.dhe.ibm.com/cloud/bluemix/cli/bluemix-cli/"
     #MacOS: Bluemix_CLI_0.4.6.pkg
@@ -198,14 +199,13 @@ function install_bx {
     #Win:   Bluemix_CLI_0.4.6_amd64.exe
     case "$PLATFORM" in
     "Darwin") 
-      if [[ "${PLATFORM}" == "Darwin" && ! -z "$BREW" ]]; then
+      if [[ "$USEBREW" == true ]]; then
         brew cask install "caskroom/cask/bluemix-cli"
       else
         latest=$(curl -s ${url} | grep "Bluemix_CLI_.*\.pkg" | sort | tail -1 | sed  's/^.*\(Bluemix_CLI_.*\.pkg\).*$/\1/')
         log "Pulling down instance: ${latest}"
         curl --progress-bar "${url}${latest}" > "${TMPDIR}/${latest}"
         log "Running installer on: ${latest}"
-        log "You may be prompted for 'sudo' password."
         sudo installer -pkg "${TMPDIR}/${latest}" -target /
       fi
       ;;
@@ -214,7 +214,6 @@ function install_bx {
       log "Pulling down instance: ${latest}"
       curl --progress-bar "${url}${latest}" > "${TMPDIR}/${latest}"
       log "Running installer on: ${latest}"
-      log "You may be prompted for 'sudo' password."
       cd "${TMPDIR}" || exit
       tar xvfz "./${latest}"
       sudo Bluemix_CLI/install_bluemix_cli
@@ -264,27 +263,35 @@ function env_setup {
   if [[ -f ~/.bashrc ]]; then
     case "$1" in
     "add")
-      if [[ -z $(grep 'alias idt="bluemix dev"' ~/.bashrc) ]]; then
+      if [[ -z "$(grep 'alias idt="bluemix dev"' ~/.bashrc)" ]]; then
         log "Adding 'idt' aliases to: ~/.bashrc"
         cp -f ~/.bashrc ~/.bashrc.idt_install_bak || error "Add - Failed to backup file: ~/.bashrc"
         echo '#-- Added by the IDT Installer' >> ~/.bashrc
         echo 'alias idt="bluemix dev"'        >> ~/.bashrc
-        echo 'alias idt-update="curl -sL https://idt-installer.mybluemix.net/ | bash"' >> ~/.bashrc
-        echo 'alias idt-uninstall="curl -sL https://idt-installer.mybluemix.net/ | bash -s uninstall"' >> ~/.bashrc
+        if [[ "$PLATFORM" == "Darwin" && "$USEBREW" == false ]]; then
+          echo 'alias idt-update="curl -sL https://idt-installer.mybluemix.net/ | bash -s -- --nobrew"' >> ~/.bashrc
+          echo 'alias idt-uninstall="curl -sL https://idt-installer.mybluemix.net/ | bash -s -- --nobrew uninstall"' >> ~/.bashrc
+        elif [[ "$PLATFORM" == "Linux" && "$USEAPT" == false ]]; then
+          echo 'alias idt-update="curl -sL https://idt-installer.mybluemix.net/ | bash -s -- --noapt"' >> ~/.bashrc
+          echo 'alias idt-uninstall="curl -sL https://idt-installer.mybluemix.net/ | bash -s -- --noapt uninstall"' >> ~/.bashrc
+        else
+          echo 'alias idt-update="curl -sL https://idt-installer.mybluemix.net/ | bash"' >> ~/.bashrc
+          echo 'alias idt-uninstall="curl -sL https://idt-installer.mybluemix.net/ | bash -s uninstall"' >> ~/.bashrc
+        fi
       fi
     ;;
     "remove")
-      if [[ -n $(grep 'alias idt="bluemix dev"' ~/.bashrc) ]]; then
-        log "Removing 'idt' alias from: ~/.bashrc"
+      if [[ -n "$(grep 'alias idt="bluemix dev"' ~/.bashrc)" ]]; then
+        log "Removing 'idt' aliases from: ~/.bashrc"
         sed -E -i ".idt_uninstall_bak" \
              -e '/^#-- Added by the IDT Installer$/d' \
              -e '/^alias idt=\"bluemix dev\"$/d' \
-             -e '/^alias idt-update=\"curl -sL https://idt-installer.mybluemix.net/ | bash\"$/d' \
-             -e '/^alias idt-uninstall=\"curl -sL https://idt-installer.mybluemix.net/ | bash -s uninstall\"$/d' \
+             -e '/^alias idt-update=/d' \
+             -e '/^alias idt-uninstall=/d' \
              ~/.bashrc
       fi
     ;;
-    *) error "Called with invalid parameter: ${1}";;
+    *) error "Interal error - called with invalid parameter: ${1}";;
     esac
   fi
 }
@@ -298,20 +305,44 @@ function main {
 
   TMPDIR=${TMPDIR:-"/tmp"}
   PLATFORM=$(uname)
+  ACTION=""
+  USEBREW=true
+  USEAPT=true
 
-  case "${PLATFORM}" in
+  #-- Parse args
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+    "--nobrew")   
+      USEBREW=false;
+      warn "Disabling the use of 'brew' for MacOS packages"
+      log  "Note: Ensure you are consistent with this option when installing / updating / uninstalling"
+      ;;
+    "--noapt")   
+      USEAPT=false;
+      warn "Disabling the use of 'apt' for Linux packages"
+      log  "Note: Ensure you are consistent with this option when installing / updating / uninstalling"
+      ;;
+    "install")    ACTION="install";;
+    "uninstall")  ACTION="uninstall";;
+    *)            ACTION="help";;
+    esac
+    shift
+  done
+
+  case "$PLATFORM" in
   "Darwin")
-    BREW="$(which brew)"
+    [[ -z "$(which brew)" ]] && USEBREW=false
     ;;
   "Linux")  
     warn "Linux has not been well tested, so things may not work properly..."
+    [[ -z "$(which apt)" ]] && USEAPT=false
     ;;
   "Windows") 
     warn "Windows has not been tested AT ALL! Please send all errors to author."
     ;;
   esac
 
-  case "$1" in
+  case "$ACTION" in
   "")           install;;
   "install")    install;;
   "uninstall")  uninstall;;
