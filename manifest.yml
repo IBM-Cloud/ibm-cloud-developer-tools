@@ -1,0 +1,10 @@
+applications:
+- name: idt-installer
+  host: idt-installer
+  domain: mybluemix.net
+  memory: 32M
+  instances: 1
+  disk_quota: 512M
+  buildpack: swift_buildpack
+  command: idtinstaller --bind 0.0.0.0:$PORT
+  timeout: 180
