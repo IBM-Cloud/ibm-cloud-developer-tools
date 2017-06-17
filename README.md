@@ -98,8 +98,6 @@ By default, this installer will use the 'brew' installer if it is available. You
 
 This script has only been tested on Ubuntu Linux systems, although it should behave properly on other distros. If you run into any issues, please let us know on [Slack](https://ibm.biz/IBMCloudNativeSlack) or file an issue on our [GitHub repo](https://github.com/ibm-cloud-tools/idt-installer).
 
-By default, this installer will use the 'apt' installer if it is available. You can use the `--noapt` argument to disable use of 'apt'. Note that you must be consistent with the use of `--noapt` when installing, updating, and uninstalling.
-
 
 ### Windows
 
