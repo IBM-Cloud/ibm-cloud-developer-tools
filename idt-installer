@@ -271,9 +271,6 @@ function env_setup {
         if [[ "$PLATFORM" == "Darwin" && "$USEBREW" == false ]]; then
           echo 'alias idt-update="curl -sL https://idt-installer.mybluemix.net/ | bash -s -- --nobrew"' >> ~/.bashrc
           echo 'alias idt-uninstall="curl -sL https://idt-installer.mybluemix.net/ | bash -s -- --nobrew uninstall"' >> ~/.bashrc
-        elif [[ "$PLATFORM" == "Linux" && "$USEAPT" == false ]]; then
-          echo 'alias idt-update="curl -sL https://idt-installer.mybluemix.net/ | bash -s -- --noapt"' >> ~/.bashrc
-          echo 'alias idt-uninstall="curl -sL https://idt-installer.mybluemix.net/ | bash -s -- --noapt uninstall"' >> ~/.bashrc
         else
           echo 'alias idt-update="curl -sL https://idt-installer.mybluemix.net/ | bash"' >> ~/.bashrc
           echo 'alias idt-uninstall="curl -sL https://idt-installer.mybluemix.net/ | bash -s uninstall"' >> ~/.bashrc
@@ -307,7 +304,6 @@ function main {
   PLATFORM=$(uname)
   ACTION=""
   USEBREW=true
-  USEAPT=true
 
   #-- Parse args
   while [[ $# -gt 0 ]]; do
@@ -315,11 +311,6 @@ function main {
     "--nobrew")   
       USEBREW=false;
       warn "Disabling the use of 'brew' for MacOS packages"
-      log  "Note: Ensure you are consistent with this option when installing / updating / uninstalling"
-      ;;
-    "--noapt")   
-      USEAPT=false;
-      warn "Disabling the use of 'apt' for Linux packages"
       log  "Note: Ensure you are consistent with this option when installing / updating / uninstalling"
       ;;
     "install")    ACTION="install";;
@@ -334,8 +325,7 @@ function main {
     [[ -z "$(which brew)" ]] && USEBREW=false
     ;;
   "Linux")  
-    warn "Linux has not been well tested, so things may not work properly..."
-    [[ -z "$(which apt)" ]] && USEAPT=false
+    warn "Linux has only been tested on Ubuntu, please let us know if you use this utility on other Distros"
     ;;
   "Windows") 
     warn "Windows has not been tested AT ALL! Please send all errors to author."
