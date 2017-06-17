@@ -8,7 +8,7 @@
 #------------------------------------------------------------------------------
 
 VERSION="0.5"
-PROG="IDT Installer" 
+PROG="IBM Developer Tools - Installer" 
 
 #-- External programs, format is "binary, curl, install url"
 EXT_PROGS=(
@@ -119,19 +119,19 @@ function uninstall {
     sudo rm -rf /usr/local/Bluemix
     #-- Taken from bluemix CLI brew uninstaller
     if [[ -f /etc/profile ]]; then
-      sudo /usr/bin/sed -E -i ".bluemix_uninstall_bak" \
+      sudo sed -E -i ".bluemix_uninstall_bak" \
                         -e '/^### Added by the Bluemix CLI$/d' \
                         -e '/^source \/usr\/local\/Bluemix\/bx\/bash_autocomplete$/d' \
                         /etc/profile
     fi
     if [[ -f ~/.bashrc ]]; then
-      /usr/bin/sed -E -i ".bluemix_uninstall_bak" \
+      sed -E -i ".bluemix_uninstall_bak" \
                    -e '/^### Added by the Bluemix CLI$/d' \
                    -e '/^source \/usr\/local\/Bluemix\/bx\/bash_autocomplete$/d' \
                    ~/.bashrc
     fi
     if [[ -f ~/.zshrc ]]; then
-      /usr/bin/sed -E -i ".bluemix_uninstall_bak" \
+      sed -E -i ".bluemix_uninstall_bak" \
                    -e '/^### Added by the Bluemix CLI$/d' \
                    -e '/^source \/usr\/local\/Bluemix\/bx\/zsh_autocomplete$/d' \
                    ~/.zshrc

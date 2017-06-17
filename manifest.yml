@@ -2,7 +2,7 @@ applications:
 - name: idt-installer
   host: idt-installer
   domain: mybluemix.net
-  memory: 32M
+  memory: 64M
   instances: 1
   disk_quota: 512M
   buildpack: swift_buildpack
