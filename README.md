@@ -29,7 +29,7 @@ This script performs an installation of the IBM Developer Tools CLI environment.
 To install the IBM Developer Tools CLI, run the following command:
 
 ```
-$ curl -sL https://ibm.bix/idt-installer | bash
+$ curl -sL https://ibm.biz/idt-installer | bash
 ```
 
 Once complete, there will be three aliases defined to access the IDT:
@@ -45,7 +45,7 @@ Note: You will need to reload your bash environment (ie `. ~/.bashrc`) to access
 If you wish to update the IBM Developer Tools CLI, run `idt-update`. This command is simply an alias defined during initial install that runs the installer shown here:
 
 ```
-$ curl -sL https://ibm.bix/idt-installer | bash
+$ curl -sL https://ibm.biz/idt-installer | bash
 ```
 
 ## Uninstall
@@ -53,7 +53,7 @@ $ curl -sL https://ibm.bix/idt-installer | bash
 If you wish to remove the IBM Developer Tools CLI, run `idt-uninstall`. This command is simply an alias defined during install that runs the following:
 
 ```
-$ curl -sL https://ibm.bix/idt-installer | bash -c uninstall
+$ curl -sL https://ibm.biz/idt-installer | bash -c uninstall
 ```
 
 
