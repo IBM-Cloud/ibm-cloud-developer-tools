@@ -1,7 +1,2 @@
 .DS_Store
-/.build
-/.build-ubuntu
-/Packages
-/*.xcodeproj
-/config.json
-/spec.json
+

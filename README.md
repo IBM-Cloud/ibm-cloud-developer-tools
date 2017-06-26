@@ -1,5 +1,7 @@
 # IBM Developer Tools CLI Installer (idt-installer)
 
+### [https://github.ibm.com/kfbishop/idt-installer](https://github.ibm.com/kfbishop/idt-installer)
+
 [![](https://img.shields.io/badge/bluemix-powered-blue.svg)](https://bluemix.net)
 ![Platform](https://img.shields.io/badge/platform-SWIFT-lightgrey.svg?style=flat)
 ![Platform](https://img.shields.io/badge/platform-BASH-lightgrey.svg?style=flat)
@@ -27,7 +29,7 @@ This script performs an installation of the IBM Developer Tools CLI environment.
 To install the IBM Developer Tools CLI, run the following command:
 
 ```
-$ curl https://idt-installer.mybluemix.net/ | bash
+$ curl -sL https://ibm.bix/idt-installer | bash
 ```
 
 Once complete, there will be three aliases defined to access the IDT:
@@ -43,7 +45,7 @@ Note: You will need to reload your bash environment (ie `. ~/.bashrc`) to access
 If you wish to update the IBM Developer Tools CLI, run `idt-update`. This command is simply an alias defined during initial install that runs the installer shown here:
 
 ```
-$ curl https://idt-installer.mybluemix.net/ | bash
+$ curl -sL https://ibm.bix/idt-installer | bash
 ```
 
 ## Uninstall
@@ -51,7 +53,7 @@ $ curl https://idt-installer.mybluemix.net/ | bash
 If you wish to remove the IBM Developer Tools CLI, run `idt-uninstall`. This command is simply an alias defined during install that runs the following:
 
 ```
-$ curl https://idt-installer.mybluemix.net/ | bash -c uninstall
+$ curl -sL https://ibm.bix/idt-installer | bash -c uninstall
 ```
 
 
@@ -65,18 +67,18 @@ The script will check for the following prereqs, and attempt to install them if 
 
 ## Usage
 ```
-Usage: idt-installer [<options>]
+Usage: idt-installer [<action>]
 
-Where <options> is:
+Where <action> is:
     install             [Default] Perform full install of all needed CLIs and Plugins
     uninstall           Uninstall full IBM Cloud CLI env, including 'bx', and plugins
     help | -h | -?      Show this help
     --nobrew            Force not using brew installer on MacOS
 
-If "install" (or no argument provided), a full CLI installation will occur:
+If "install" (or no action provided), a full CLI installation (or update) will occur:
     1. Pre-req check for 'git', 'docker', and 'kubectl'
-    2. Install IBM Cloud 'bx' CLI
-    3. Install required plugins
+    2. Install latest IBM Cloud 'bx' CLI
+    3. Install all required plugins
 
 If "uninstall", the IBM Cloud CLI and plugins are removed from the system, including personal metadata.
     Note: Pre-req CLIs listed above are NOT uninstalled.

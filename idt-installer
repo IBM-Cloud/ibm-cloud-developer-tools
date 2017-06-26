@@ -9,6 +9,7 @@
 
 VERSION="0.5"
 PROG="IBM Developer Tools - Installer" 
+INSTALLER_URL="https://ibm.biz/idt-installer"
 
 #-- External programs, format is "binary, curl, install url"
 EXT_PROGS=(
@@ -30,18 +31,18 @@ PLUGINS=(
 function help {
   cat <<-!!EOF
   
-	Usage: ${PROG} [<options>]
+	Usage: ${PROG} [<action>]
   
-	Where <options> is:
+	Where <action> is:
 	  install             [Default] Perform full install of all needed CLIs and Plugins
 	  uninstall           Uninstall full IBM Cloud CLI env, including 'bx', and plugins
 	  help | -h | -?      Show this help
     --nobrew            Force not using 'brew' installer on MacOS
   
-	If "install" (or no argument provided), a full CLI installation will occur:
+	If "install" (or no action provided), a full CLI installation (or update) will occur:
   1. Pre-req check for 'git', 'docker', and 'kubectl'
-  2. Install IBM Cloud 'bx' CLI
-  3. Install required plugins
+  2. Install latest IBM Cloud 'bx' CLI
+  3. Install all required plugins
 	
 	If "uninstall", the IBM Cloud CLI and plugins are removed from the system, including personal metadata.
   Note: Pre-req CLIs listed above are NOT uninstalled.
@@ -150,7 +151,7 @@ function install {
   log "Note: You may be prompted for your 'sudo' password during install."
   install_deps
   install_bx
-  plugin
+  install_plugins
   env_setup add
   log "Three aliases are defined:"
   log "  ${GRN}idt${NRM}           : Main command line tool for IBM Cloud Native development"
@@ -240,7 +241,7 @@ function install_bx {
 }
 
 #------------------------------------------------------------------------------
-function plugin {
+function install_plugins {
   log "Installaing / updating required plugins..."
   for plugin in "${PLUGINS[@]}"; do
     log "Checking status of plugin: ${plugin}"
@@ -260,37 +261,44 @@ function plugin {
 
 #------------------------------------------------------------------------------
 function env_setup {
-  if [[ -f ~/.bashrc ]]; then
-    case "$1" in
-    "add")
-      if [[ -z "$(grep 'alias idt="bluemix dev"' ~/.bashrc)" ]]; then
-        log "Adding 'idt' aliases to: ~/.bashrc"
-        cp -f ~/.bashrc ~/.bashrc.idt_install_bak || error "Add - Failed to backup file: ~/.bashrc"
-        echo '#-- Added by the IDT Installer' >> ~/.bashrc
-        echo 'alias idt="bluemix dev"'        >> ~/.bashrc
-        if [[ "$PLATFORM" == "Darwin" && "$USEBREW" == false ]]; then
-          echo 'alias idt-update="curl -sL https://idt-installer.mybluemix.net/ | bash -s -- --nobrew"' >> ~/.bashrc
-          echo 'alias idt-uninstall="curl -sL https://idt-installer.mybluemix.net/ | bash -s -- --nobrew uninstall"' >> ~/.bashrc
-        else
-          echo 'alias idt-update="curl -sL https://idt-installer.mybluemix.net/ | bash"' >> ~/.bashrc
-          echo 'alias idt-uninstall="curl -sL https://idt-installer.mybluemix.net/ | bash -s uninstall"' >> ~/.bashrc
-        fi
-      fi
-    ;;
-    "remove")
-      if [[ -n "$(grep 'alias idt="bluemix dev"' ~/.bashrc)" ]]; then
-        log "Removing 'idt' aliases from: ~/.bashrc"
-        sed -E -i ".idt_uninstall_bak" \
-             -e '/^#-- Added by the IDT Installer$/d' \
-             -e '/^alias idt=\"bluemix dev\"$/d' \
-             -e '/^alias idt-update=/d' \
-             -e '/^alias idt-uninstall=/d' \
-             ~/.bashrc
-      fi
-    ;;
-    *) error "Interal error - called with invalid parameter: ${1}";;
-    esac
+  file=""
+  if   [[ -f ~/.bashrc ]]      ; then file=~/.bashrc
+  elif [[ -f ~/.bash_profile ]]; then file=~/.bash_profile
+  elif [[ -f ~/.profile ]]     ; then file=~/.profile
+  else
+    file=~/.bashrc
+    warn "Creatoing new '${file}' file to contain aliases"
+    touch ~/.bashrc || error "Failed to create '${file}' file!"
   fi
+  case "$1" in
+  "add")
+    if [[ -z "$(grep 'alias idt="bluemix dev"' "$file")" ]]; then
+      log "Adding 'idt' aliases to: ${file}"
+      cp -f "$file" "$file".idt_install_bak || error "Add - Failed to backup file: ${file}"
+      echo '#-- Added by the IDT Installer' >> "$file"
+      echo 'alias idt="bluemix dev"'        >> "$file"
+      if [[ "$PLATFORM" == "Darwin" && "$USEBREW" == false ]]; then
+        echo 'alias idt-update="curl -sL' "$INSTALLER_URL" '| bash -s -- --nobrew"' >> "$file"
+        echo 'alias idt-uninstall="curl -sL' "$INSTALLER_URL" '| bash -s -- --nobrew uninstall"' >> "$file"
+      else
+        echo 'alias idt-update="curl -sL' "$INSTALLER_URL" '| bash"' >> "$file"
+        echo 'alias idt-uninstall="curl -sL' "$INSTALLER_URL" '| bash -s uninstall"' >> "$file"
+      fi
+    fi
+  ;;
+  "remove")
+    if [[ -n "$(grep 'alias idt="bluemix dev"' "$file")" ]]; then
+      log "Removing 'idt' aliases from: ${file}"
+      sed -E -i ".idt_uninstall_bak" \
+            -e '/^#-- Added by the IDT Installer$/d' \
+            -e '/^alias idt=\"bluemix dev\"$/d' \
+            -e '/^alias idt-update=/d' \
+            -e '/^alias idt-uninstall=/d' \
+             ${file}
+    fi
+  ;;
+  *) error "Interal error - called with invalid parameter: ${1}";;
+  esac
 }
 
 #------------------------------------------------------------------------------
