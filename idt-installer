@@ -115,7 +115,7 @@ function uninstall {
 
   log "Removing Bluemix CLI..."
   if [[ "${PLATFORM}" == "Darwin" && "$USEBREW" == true ]]; then
-    brew cask uninstall "caskroom/cask/bluemix-cli"
+    brew cask uninstall "bluemix-cli"
   else
     sudo rm -f  /usr/local/bin/bluemix
     sudo rm -f  /usr/local/bin/bx
