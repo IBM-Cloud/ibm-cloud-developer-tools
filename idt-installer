@@ -288,7 +288,7 @@ function env_setup {
         echo 'alias idt-uninstall="curl -sL' "$INSTALLER_URL" '| bash -s uninstall"' >> "$env_file"
       fi
       warn "To access the aliases below, you need to either restart your terminal session,"
-      warn "or reload your bash env warn (ie '. ${env_file}')"
+      warn "or reload your bash env (ie '. ${env_file}')"
     else
       log "'idt' aliases are already defined in: ${env_file}"
     fi
