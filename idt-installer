@@ -204,7 +204,7 @@ function install_bx {
     case "$PLATFORM" in
     "Darwin") 
       if [[ "$USEBREW" == true ]]; then
-        brew cask install "caskroom/cask/bluemix-cli"
+        brew cask reinstall "caskroom/cask/bluemix-cli"
       else
         latest=$(curl -s ${url} | grep "Bluemix_CLI_.*\.pkg" | sort | tail -1 | sed  's/^.*\(Bluemix_CLI_.*\.pkg\).*$/\1/')
         log "Pulling down instance: ${latest}"
