@@ -61,7 +61,7 @@ $ curl -sL https://ibm.biz/idt-installer | bash
 If you wish to remove the IBM Developer Tools CLI, run `idt-uninstall`. This command is simply an alias defined during install that runs the following:
 
 ```
-$ curl -sL https://ibm.biz/idt-installer | bash -c uninstall
+$ curl -sL https://ibm.biz/idt-installer | bash -s uninstall
 ```
 
 
