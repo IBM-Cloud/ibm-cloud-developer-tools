@@ -34,13 +34,14 @@ PLUGINS=(
 function help {
   cat <<-!!EOF
   
-	Usage: ${PROG} [<action>]
+	Usage: ${PROG} [<args>]
   
-	Where <action> is:
+	Where <args> is:
 	  install             [Default] Perform full install of all needed CLIs and Plugins
 	  uninstall           Uninstall full IBM Cloud CLI env, including 'bx', and plugins
 	  help | -h | -?      Show this help
     --nobrew            Force not using 'brew' installer on MacOS
+    --trace             Eanble verbose tracing of all activity
   
 	If "install" (or no action provided), a full CLI installation (or update) will occur:
   1. Pre-req check for 'git', 'docker', 'kubectl', and 'helm'
@@ -160,6 +161,7 @@ function install {
   log "  ${GRN}idt${NRM}           : Main command line tool for IBM Cloud Native development"
   log "  ${GRN}idt-update${NRM}    : Update your IDT tools to the latest version"
   log "  ${GRN}idt-uninstall${NRM} : Uninstall the IBM Developer Tools"
+  log "Note: you must reload your environemnt (ie. . ~/.bashrc) to access these aliases."
   log "Install finished."
 }
 
@@ -262,7 +264,7 @@ function install_plugins {
   done
   log "Running 'bx plugin list'..."
   bx plugin list
-  log "Finished installing/updting plugins" 
+  log "Finished installing/updating plugins" 
 }
 
 #------------------------------------------------------------------------------
@@ -273,7 +275,7 @@ function env_setup {
   elif [[ -f ~/.profile ]]     ; then file=~/.profile
   else
     file=~/.bashrc
-    warn "Creatoing new '${file}' file to contain aliases"
+    warn "Creating new '${file}' file to contain aliases"
     touch ~/.bashrc || error "Failed to create '${file}' file!"
   fi
   case "$1" in
@@ -322,6 +324,10 @@ function main {
   #-- Parse args
   while [[ $# -gt 0 ]]; do
     case "$1" in
+    "--trace")
+      warn "Enabling verbose tracing of all activity"
+      set -x
+      ;;
     "--nobrew")   
       USEBREW=false;
       warn "Disabling the use of 'brew' for MacOS packages"

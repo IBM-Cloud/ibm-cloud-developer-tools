@@ -67,13 +67,15 @@ The script will check for the following prereqs, and attempt to install them if 
 
 ## Usage
 ```
-Usage: idt-installer [<action>]
+Usage: idt-installer [<args>]
 
-Where <action> is:
+Where <args> is:
     install             [Default] Perform full install of all needed CLIs and Plugins
     uninstall           Uninstall full IBM Cloud CLI env, including 'bx', and plugins
     help | -h | -?      Show this help
     --nobrew            Force not using brew installer on MacOS
+    --trace             Eanble verbose tracing of all activity
+
 
 If "install" (or no action provided), a full CLI installation (or update) will occur:
     1. Pre-req check for 'git', 'docker', and 'kubectl'
@@ -103,11 +105,12 @@ This script has only been tested on Ubuntu Linux systems, although it should beh
 
 ### Windows
 
-**WARNING**: Windows has had **VERY** limited testing.
-If you can try it on a non-critical machine, and report any issues/failures directly to the author, that will help us get this available for real Windows users. 
+**WARNING**: Windows is not supported by the installer.
 
-Additionally, Windows users must have [Bash shell](https://www.windowscentral.com/how-install-bash-shell-command-line-windows-10) installed to use this installer. If you're willing to port this installer to PowerShell, please let us know!
+Please use the Windows specific installer available at: TBD
 
+
+## Feedback
 
 We can be reached on [Slack](https://ibm.biz/IBMCloudNativeSlack) or file an issue on our [GitHub repo](https://github.com/ibm-cloud-tools/idt-installer).
 
