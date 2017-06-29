@@ -161,7 +161,7 @@ function install {
   log "  ${GRN}idt${NRM}           : Main command line tool for IBM Cloud Native development"
   log "  ${GRN}idt-update${NRM}    : Update your IDT tools to the latest version"
   log "  ${GRN}idt-uninstall${NRM} : Uninstall the IBM Developer Tools"
-  warn "Note: You will need to either restart your terminal sessions, or reload your bash environment"
+  warn "Note: You will need to either restart your terminal session, or reload your bash environment"
   warn "(ie '. ~/.bashrc') to access these commands."
   log "Install finished."
 }
