@@ -157,12 +157,6 @@ function install {
   install_bx
   install_plugins
   env_setup add
-  log "Three aliases are defined:"
-  log "  ${GRN}idt${NRM}           : Main command line tool for IBM Cloud Native development"
-  log "  ${GRN}idt-update${NRM}    : Update your IDT tools to the latest version"
-  log "  ${GRN}idt-uninstall${NRM} : Uninstall the IBM Developer Tools"
-  warn "Note: You will need to either restart your terminal session, or reload your bash environment"
-  warn "(ie '. ~/.bashrc') to access these commands."
   log "Install finished."
 }
 
@@ -270,40 +264,48 @@ function install_plugins {
 
 #------------------------------------------------------------------------------
 function env_setup {
-  file=""
-  if   [[ -f ~/.bashrc ]]      ; then file=~/.bashrc
-  elif [[ -f ~/.bash_profile ]]; then file=~/.bash_profile
-  elif [[ -f ~/.profile ]]     ; then file=~/.profile
+  env_file=""
+  if   [[ -f ~/.bashrc ]]      ; then env_file=~/.bashrc
+  elif [[ -f ~/.bash_profile ]]; then env_file=~/.bash_profile
+  elif [[ -f ~/.profile ]]     ; then env_file=~/.profile
   else
-    file=~/.bashrc
-    warn "Creating new '${file}' file to contain aliases"
-    touch ~/.bashrc || error "Failed to create '${file}' file!"
+    env_file=~/.bashrc
+    warn "Creating new '${env_file}' file to contain aliases"
+    touch "${env_file}" || error "Failed to create '${env_file}' file!"
   fi
   case "$1" in
   "add")
-    if [[ -z "$(grep 'alias idt="bluemix dev"' "$file")" ]]; then
-      log "Adding 'idt' aliases to: ${file}"
-      cp -f "$file" "$file".idt_install_bak || error "Add - Failed to backup file: ${file}"
-      echo '#-- Added by the IDT Installer' >> "$file"
-      echo 'alias idt="bluemix dev"'        >> "$file"
+    if [[ -z "$(grep 'alias idt="bluemix dev"' "$env_file")" ]]; then
+      log "Adding 'idt' aliases to: ${env_file}"
+      cp -f "$env_file" "$env_file".idt_install_bak || error "Add - Failed to backup file: ${env_file}"
+      echo '#-- Added by the IDT Installer' >> "$env_file"
+      echo 'alias idt="bluemix dev"'        >> "$env_file"
       if [[ "$PLATFORM" == "Darwin" && "$USEBREW" == false ]]; then
-        echo 'alias idt-update="curl -sL' "$INSTALLER_URL" '| bash -s -- --nobrew"' >> "$file"
-        echo 'alias idt-uninstall="curl -sL' "$INSTALLER_URL" '| bash -s -- --nobrew uninstall"' >> "$file"
+        echo 'alias idt-update="curl -sL' "$INSTALLER_URL" '| bash -s -- --nobrew"' >> "$env_file"
+        echo 'alias idt-uninstall="curl -sL' "$INSTALLER_URL" '| bash -s -- --nobrew uninstall"' >> "$env_file"
       else
-        echo 'alias idt-update="curl -sL' "$INSTALLER_URL" '| bash"' >> "$file"
-        echo 'alias idt-uninstall="curl -sL' "$INSTALLER_URL" '| bash -s uninstall"' >> "$file"
+        echo 'alias idt-update="curl -sL' "$INSTALLER_URL" '| bash"' >> "$env_file"
+        echo 'alias idt-uninstall="curl -sL' "$INSTALLER_URL" '| bash -s uninstall"' >> "$env_file"
       fi
+      warn "To access the aliases below, you need to either restart your terminal session,"
+      warn "or reload your bash env warn (ie '. ${env_file}')"
+    else
+      log "'idt' aliases are already defined in: ${env_file}"
     fi
+    log "The following aliases are defined to access the 'idt' tool:"
+    log "  ${GRN}idt${NRM}           : Main command line tool for IBM Cloud Native development"
+    log "  ${GRN}idt-update${NRM}    : Update your IDT tools to the latest version"
+    log "  ${GRN}idt-uninstall${NRM} : Uninstall the IBM Developer Tools"
   ;;
   "remove")
-    if [[ -n "$(grep 'alias idt="bluemix dev"' "$file")" ]]; then
-      log "Removing 'idt' aliases from: ${file}"
+    if [[ -n "$(grep 'alias idt="bluemix dev"' "$env_file")" ]]; then
+      log "Removing 'idt' aliases from: ${env_file}"
       sed -E -i ".idt_uninstall_bak" \
             -e '/^#-- Added by the IDT Installer$/d' \
             -e '/^alias idt=\"bluemix dev\"$/d' \
             -e '/^alias idt-update=/d' \
             -e '/^alias idt-uninstall=/d' \
-             ${file}
+             ${env_file}
     fi
   ;;
   *) error "Interal error - called with invalid parameter: ${1}";;

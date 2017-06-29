@@ -37,7 +37,7 @@ Once complete, there will be three aliases defined to access the IDT:
 - `idt-update` : Update your IDT environment to the latest versions
 - `idt-uninstall` : Uninstall the IBM Developer Tools
 
-Note: You will need to either restart your terminal sessions, or reload your bash environment (ie `. ~/.bashrc`) to access these commands.
+Note: You will need to either restart your terminal session, or reload your bash environment (ie `. ~/.bashrc`) to access these commands.
 
 ### Debugging
 
