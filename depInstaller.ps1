@@ -9,15 +9,18 @@ Foreach($i in $EXT_PROGS) {
         if ($prog_bin -eq "docker") {
             Invoke-WebRequest "https://download.docker.com/win/stable/DockerToolbox.exe" -outfile "DockerToolbox.exe"
             .\DockerToolbox.exe /a | Out-Null
+            rm "DockerToolbox.exe"
             #TODO clean up the installer
         } elseif ($prog_bin -eq "kubectl") {
             $kube_version = (Invoke-WebRequest "https://storage.googleapis.com/kubernetes-release/release/stable.txt").Content
             $kube_version = $kube_version -replace "`n|`r"
             Invoke-WebRequest "https://storage.googleapis.com/kubernetes-release/release/$kube_version/bin/windows/amd64/kubectl.exe" -outfile "kubectl.exe"
-            .\kubectl.exe /a | Out-Null
+            mkdir "C:\Program Files\kubectl"
+            Move-Item -Path "kubectl.exe" -Destination "C:\Program Files\kubectl"
+            #not sure this works atm, run at your own risk
+            setx path PATH %PATH%;"C:\Program Files\kubectl"
         } else {
             echo "$prog_bin install not implemented"
         }
     }
 }
-
