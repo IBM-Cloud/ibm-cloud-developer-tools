@@ -10,7 +10,6 @@ Foreach($i in $EXT_PROGS) {
             Invoke-WebRequest "https://download.docker.com/win/stable/DockerToolbox.exe" -outfile "DockerToolbox.exe"
             .\DockerToolbox.exe /a | Out-Null
             rm "DockerToolbox.exe"
-            #TODO clean up the installer
         } elseif ($prog_bin -eq "kubectl") {
             $kube_version = (Invoke-WebRequest "https://storage.googleapis.com/kubernetes-release/release/stable.txt").Content
             $kube_version = $kube_version -replace "`n|`r"
@@ -18,7 +17,20 @@ Foreach($i in $EXT_PROGS) {
             mkdir "C:\Program Files\kubectl"
             Move-Item -Path "kubectl.exe" -Destination "C:\Program Files\kubectl"
             #not sure this works atm, run at your own risk
-            setx path PATH %PATH%;"C:\Program Files\kubectl"
+            #directly edit the registery to add kubectl to path
+            $regPath = "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment"
+            $value = (Get-ItemProperty $regPath -Name Path).Path
+            $newValue = $value+";C:\Program Files\kubectl"
+            New-ItemProperty -Path $regPath -Name Path -Value $newValue -PropertyType REG_SZ | Out-Null
+        } elseif ($prog_bin -eq "helm") {
+            $helm_url = "https://github.com/kubernetes/helm/releases/latest"
+            $TAG = (((Invoke-WebRequest 'https://github.com/kubernetes/helm/releases/latest').Links.outerHTML | Where{$_ -match '/tag/'} | select -first 1).Split('"')[3]).Split("/")[$-.Length-1]
+            if("x$TAG" -eq "x") {
+                echo "Cannot determine tag"
+                return
+            }
+            #need to check for proper architecture
+            $helm_download_url = "https://storage.googleapis.com/kuberbetes-helm/helm-$TAG-windows-amd64.zip"
         } else {
             echo "$prog_bin install not implemented"
         }
