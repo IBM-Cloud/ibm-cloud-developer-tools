@@ -1,4 +1,6 @@
-$EXT_PROGS = "docker,docker,https://docs.docker.com/engine/installation","kubectl,kubectl,https://kubernetes.io/docs/tasks/tools/install-kubectl/","helm,kubernetes-helm,https://github.com/kubernetes/helm/blob/master/docs/install.md"
+#do this to mimic the curl | bash script
+$EXT_PROGS = "git,https://git-scm.com","docker,https://docs.docker.com/engine/installation","kubectl,https://kubernetes.io/docs/tasks/tools/install-kubectl/","helm,https://github.com/kubernetes/helm/blob/master/docs/install.md"
+#install dependencies
 Foreach($i in $EXT_PROGS) {
     $prog_bin, $prog_url = $i.split(",")
     echo "Checking for dependency $prog_bin"
@@ -6,7 +8,11 @@ Foreach($i in $EXT_PROGS) {
         echo "$prog_bin already installed"
     } else {
         echo "$prog_bin attempting to install..."
-        if ($prog_bin -eq "docker") {
+        if ($prog_bin -eq "git") {
+            Invoke-WebRequest "https://git-scm.com/download/win" -outfile "git.exe"
+            .\git.exe /SILENT /PathOption="Cmd" | Out-Null
+            rm "git.exe"
+        } elseif ($prog_bin -eq "docker") {
             Invoke-WebRequest "https://download.docker.com/win/stable/DockerToolbox.exe" -outfile "DockerToolbox.exe"
             .\DockerToolbox.exe /a /SILENT | Out-Null
             rm "DockerToolbox.exe"
@@ -22,13 +28,14 @@ Foreach($i in $EXT_PROGS) {
             $newValue = $value+";C:\Program Files\kubectl"
             Set-ItemProperty -Path $regPath -Name Path -Value $newValue | Out-Null
         } elseif ($prog_bin -eq "helm") {
+            #only installs helm, not tiller
             $helm_url = "https://github.com/kubernetes/helm/releases/latest"
             $TAG = (((Invoke-WebRequest 'https://github.com/kubernetes/helm/releases/latest').Links.outerHTML | Where{$_ -match '/tag/'} | select -first 1).Split('"')[3]).Split("/")[$_.Length-1]
             if("x$TAG" -eq "x") {
                 echo "Cannot determine tag"
                 return
             }
-            #need to check for proper architecture
+            #might need to check for proper architecture, but I havent seen a 32 version of windows helm...
             $helm_download_url = "https://storage.googleapis.com/kubernetes-helm/helm-$TAG-windows-amd64.zip"
             Invoke-WebRequest $helm_download_url -outfile "helm-$TAG-windows-amd64.zip"
             mkdir "C:\Program Files\helm"
@@ -44,3 +51,12 @@ Foreach($i in $EXT_PROGS) {
         }
     }
 }
+#after dependencies are installed intall bx
+if( get-command bx ) {
+    echo "bx already installed"
+} else {
+    #iex(New-Object Net.WebClient).DownloadString("https://clis.ng.bluemix.net/install/powershell")
+}
+#after bx is installed, install plugins
+$EXT_PLUGINS = "container-registry","container-service","dev","IBM-Containers"
+#.\"C:\Program Files\IBM\Bluemix\bin\bx.exe" plugin list
