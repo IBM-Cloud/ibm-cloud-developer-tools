@@ -16,21 +16,29 @@ Foreach($i in $EXT_PROGS) {
             Invoke-WebRequest "https://storage.googleapis.com/kubernetes-release/release/$kube_version/bin/windows/amd64/kubectl.exe" -outfile "kubectl.exe"
             mkdir "C:\Program Files\kubectl"
             Move-Item -Path "kubectl.exe" -Destination "C:\Program Files\kubectl"
-            #not sure this works atm, run at your own risk
             #directly edit the registery to add kubectl to path
             $regPath = "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment"
             $value = (Get-ItemProperty $regPath -Name Path).Path
             $newValue = $value+";C:\Program Files\kubectl"
-            New-ItemProperty -Path $regPath -Name Path -Value $newValue -PropertyType REG_SZ | Out-Null
+            Set-ItemProperty -Path $regPath -Name Path -Value $newValue | Out-Null
         } elseif ($prog_bin -eq "helm") {
             $helm_url = "https://github.com/kubernetes/helm/releases/latest"
-            $TAG = (((Invoke-WebRequest 'https://github.com/kubernetes/helm/releases/latest').Links.outerHTML | Where{$_ -match '/tag/'} | select -first 1).Split('"')[3]).Split("/")[$-.Length-1]
+            $TAG = (((Invoke-WebRequest 'https://github.com/kubernetes/helm/releases/latest').Links.outerHTML | Where{$_ -match '/tag/'} | select -first 1).Split('"')[3]).Split("/")[$_.Length-1]
             if("x$TAG" -eq "x") {
                 echo "Cannot determine tag"
                 return
             }
             #need to check for proper architecture
-            $helm_download_url = "https://storage.googleapis.com/kuberbetes-helm/helm-$TAG-windows-amd64.zip"
+            $helm_download_url = "https://storage.googleapis.com/kubernetes-helm/helm-$TAG-windows-amd64.zip"
+            Invoke-WebRequest $helm_download_url -outfile "helm-$TAG-windows-amd64.zip"
+            mkdir "C:\Program Files\helm"
+            Expand-Archive helm-$TAG-windows-amd64.zip -DestinationPath "C:\Program Files\helm"
+            #directly edit the registery to add helm to path
+            $regPath = "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment"
+            $value = (Get-ItemProperty $regPath -Name Path).Path
+            $newValue = $value+";C:\Program Files\helm\windows-amd64\helm"
+            Set-ItemProperty -Path $regPath -Name Path -Value $newValue | Out-Null
+            rm "helm-$TAG-windows-amd64.zip"
         } else {
             echo "$prog_bin install not implemented"
         }
