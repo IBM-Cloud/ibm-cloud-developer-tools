@@ -38,6 +38,7 @@ Foreach($i in $EXT_PROGS) {
             $value = (Get-ItemProperty $regPath -Name Path).Path
             $newValue = $value+";C:\Program Files\helm\windows-amd64\helm"
             Set-ItemProperty -Path $regPath -Name Path -Value $newValue | Out-Null
+            New-Alias helm "C:\Program Files\helm\windows-amd64\helm.exe"
             rm "helm-$TAG-windows-amd64.zip"
         } else {
             echo "$prog_bin install not implemented"
