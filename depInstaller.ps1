@@ -36,9 +36,8 @@ Foreach($i in $EXT_PROGS) {
             #directly edit the registery to add helm to path
             $regPath = "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment"
             $value = (Get-ItemProperty $regPath -Name Path).Path
-            $newValue = $value+";C:\Program Files\helm\windows-amd64\helm"
+            $newValue = $value+";C:\Program Files\helm\windows-amd64"
             Set-ItemProperty -Path $regPath -Name Path -Value $newValue | Out-Null
-            New-Alias helm "C:\Program Files\helm\windows-amd64\helm.exe"
             rm "helm-$TAG-windows-amd64.zip"
         } else {
             echo "$prog_bin install not implemented"
