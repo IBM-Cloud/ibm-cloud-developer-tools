@@ -4,7 +4,8 @@
 # Check for 64-bit Platform - Dev and Helm do not have 32-bit versions.
 if ([Environment]::Is64BitProcess -ne [Environment]::Is64BitOperatingSystem)
 {
-    
+    echo "This installer requires 64-bit windows"
+    exit
 }
 
 # Running as admin defaults to system32 change to home directory.
