@@ -1,4 +1,5 @@
-#do this to mimic the curl | bash script
+#running as admin defaults to system32 change to home
+cd ~
 #this assumes a 64 bit machine, as helm and the dev plugin have no 32 bit versions
 $EXT_PROGS = "git,https://git-scm.com","docker,https://docs.docker.com/engine/installation","kubectl,https://kubernetes.io/docs/tasks/tools/install-kubectl/","helm,https://github.com/kubernetes/helm/blob/master/docs/install.md"
 #install dependencies
