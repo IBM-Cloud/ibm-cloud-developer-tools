@@ -1,4 +1,5 @@
 #do this to mimic the curl | bash script
+#this assumes a 64 bit machine, as helm and the dev plugin have no 32 bit versions
 $EXT_PROGS = "git,https://git-scm.com","docker,https://docs.docker.com/engine/installation","kubectl,https://kubernetes.io/docs/tasks/tools/install-kubectl/","helm,https://github.com/kubernetes/helm/blob/master/docs/install.md"
 #install dependencies
 Foreach($i in $EXT_PROGS) {
@@ -35,7 +36,6 @@ Foreach($i in $EXT_PROGS) {
                 echo "Cannot determine tag"
                 return
             }
-            #might need to check for proper architecture, but I havent seen a 32 version of windows helm...
             $helm_download_url = "https://storage.googleapis.com/kubernetes-helm/helm-$TAG-windows-amd64.zip"
             Invoke-WebRequest $helm_download_url -outfile "helm-$TAG-windows-amd64.zip"
             mkdir "C:\Program Files\helm"
@@ -55,8 +55,40 @@ Foreach($i in $EXT_PROGS) {
 if( get-command bx ) {
     echo "bx already installed"
 } else {
-    #iex(New-Object Net.WebClient).DownloadString("https://clis.ng.bluemix.net/install/powershell")
+    iex(New-Object Net.WebClient).DownloadString("https://clis.ng.bluemix.net/install/powershell")
+    C:\"Program Files"\IBM\Bluemix\bin\bx.exe api api.ng.bluemix.net
 }
 #after bx is installed, install plugins
 $EXT_PLUGINS = "container-registry","container-service","dev","IBM-Containers"
-#.\"C:\Program Files\IBM\Bluemix\bin\bx.exe" plugin list
+$EXT_PLUGINS = New-Object System.Collections.ArrayList(,$EXT_PLUGINS)
+$pluginlist = C:\"Program Files"\IBM\Bluemix\bin\bx.exe plugin list
+#parse list to determine what plugins we have installed already
+for ($i=2; $i -lt $pluginlist.length; $i++) {
+    $item = $pluginlist[$i].split(" ",2)
+    if($item[0] -match "\bdev\b") {
+        echo "dev is installed"
+        $EXT_PLUGINS.remove("dev")
+    } elseif ($item[0] -match "\bcontainer-registry\b") {
+        echo "constainer-registry is installed"
+        $EXT_PLUGINS.remove("container-registry")
+    } elseif ($item[0] -match "\bcontainer-service\b") {
+        echo "container-service is installed"
+        $EXT_PLUGINS.remove("container-service")
+    } elseif ($item[0] -match "\bIBM-Containers\b") {
+        echo "IBM-Containers is installed"
+        $EXT_PLUGINS.remove("IBM-Containers")
+    }
+}
+#install plugins
+if( $EXT_PLUGINS.contains("dev")) {
+    C:\"Program Files"\IBM\Bluemix\bin\bx.exe plugin install dev -r Bluemix
+}
+if( $EXT_PLUGINS.contains("container-registry")) {
+    C:\"Program Files"\IBM\Bluemix\bin\bx.exe plugin install container-registry -r Bluemix
+}
+if( $EXT_PLUGINS.contains("container-service")) {
+    C:\"Program Files"\IBM\Bluemix\bin\bx.exe plugin install container-service -r Bluemix
+}
+if( $EXT_PLUGINS.contains("IBM-Containers")) {
+    C:\"Program Files"\IBM\Bluemix\bin\bx.exe plugin install IBM-Containers -r Bluemix
+}
