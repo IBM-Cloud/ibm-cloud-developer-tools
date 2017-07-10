@@ -11,9 +11,9 @@ Foreach($i in $EXT_PROGS) {
         echo "$prog_bin attempting to install..."
         if ($prog_bin -eq "git") {
             $gitVersion = (Invoke-WebRequest "https://git-scm.com/downloads/latest").Content
-            Invoke-WebRequest "https://github.com/git-for-windows/git/releases/download/v$gitVersion.windows.1/Git-$gitVersion-64-bit.exe" -outfile "Git-$gitVersion-64-bit.exe"
-            .\Git-$gitVersion-64-bit.exe /SILENT /PathOption="Cmd" | Out-Null
-            rm "Git-$gitVersion-64-bit.exe"
+            Invoke-WebRequest "https://github.com/git-for-windows/git/releases/download/v$gitVersion.windows.1/Git-$gitVersion-64-bit.exe" -outfile "git-installer.exe"
+            .\git-installer.exe /SILENT /PathOption="Cmd" | Out-Null
+            rm "git-intaller.exe"
         } elseif ($prog_bin -eq "docker") {
             Invoke-WebRequest "https://download.docker.com/win/stable/DockerToolbox.exe" -outfile "DockerToolbox.exe"
             .\DockerToolbox.exe /a /SILENT | Out-Null
