@@ -5,14 +5,15 @@ $EXT_PROGS = "git,https://git-scm.com","docker,https://docs.docker.com/engine/in
 Foreach($i in $EXT_PROGS) {
     $prog_bin, $prog_url = $i.split(",")
     echo "Checking for dependency $prog_bin"
-    if( get-command $prog_bin ) {
+    if( get-command $prog_bin -erroraction 'silentlycontinue' ) {
         echo "$prog_bin already installed"
     } else {
         echo "$prog_bin attempting to install..."
         if ($prog_bin -eq "git") {
-            Invoke-WebRequest "https://git-scm.com/download/win" -outfile "git.exe"
-            .\git.exe /SILENT /PathOption="Cmd" | Out-Null
-            rm "git.exe"
+            $gitVersion = (Invoke-WebRequest "https://git-scm.com/downloads/latest").Content
+            Invoke-WebRequest "https://github.com/git-for-windows/git/releases/download/v$gitVersion.windows.1/Git-$gitVersion-64-bit.exe" -outfile "Git-$gitVersion-64-bit.exe"
+            .\Git-$gitVersion-64-bit.exe /SILENT /PathOption="Cmd" | Out-Null
+            rm "Git-$gitVersion-64-bit.exe"
         } elseif ($prog_bin -eq "docker") {
             Invoke-WebRequest "https://download.docker.com/win/stable/DockerToolbox.exe" -outfile "DockerToolbox.exe"
             .\DockerToolbox.exe /a /SILENT | Out-Null
