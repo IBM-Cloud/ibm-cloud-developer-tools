@@ -1,8 +1,13 @@
-#running as admin defaults to system32 change to home
+# idt-win-installer
+# Installs IBM Developer Bluemix CLI plugin and all dependencies.
+
+# Running as admin defaults to system32 change to home directory.
 cd ~
-#this assumes a 64 bit machine, as helm and the dev plugin have no 32 bit versions
+
+# This assumes a 64 bit machine, as helm and the dev plugin have no 32 bit versions.
 $EXT_PROGS = "git,https://git-scm.com","docker,https://docs.docker.com/engine/installation","kubectl,https://kubernetes.io/docs/tasks/tools/install-kubectl/","helm,https://github.com/kubernetes/helm/blob/master/docs/install.md"
-#install dependencies
+
+# Install dependencies - git, docker, kubectl, helm.
 Foreach($i in $EXT_PROGS) {
     $prog_bin, $prog_url = $i.split(",")
     echo "Checking for dependency $prog_bin"
@@ -25,13 +30,12 @@ Foreach($i in $EXT_PROGS) {
             Invoke-WebRequest "https://storage.googleapis.com/kubernetes-release/release/$kube_version/bin/windows/amd64/kubectl.exe" -outfile "kubectl.exe"
             mkdir "C:\Program Files\kubectl"
             Move-Item -Path "kubectl.exe" -Destination "C:\Program Files\kubectl"
-            #directly edit the registery to add kubectl to path
+            # Directly edit the registery to add kubectl to PATH. Will require a restart to stick.
             $regPath = "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment"
             $value = (Get-ItemProperty $regPath -Name Path).Path
             $newValue = $value+";C:\Program Files\kubectl"
             Set-ItemProperty -Path $regPath -Name Path -Value $newValue | Out-Null
         } elseif ($prog_bin -eq "helm") {
-            #only installs helm, not tiller
             $helm_url = "https://github.com/kubernetes/helm/releases/latest"
             $TAG = (((Invoke-WebRequest 'https://github.com/kubernetes/helm/releases/latest').Links.outerHTML | Where{$_ -match '/tag/'} | select -first 1).Split('"')[3]).Split("/")[$_.Length-1]
             if("x$TAG" -eq "x") {
@@ -42,7 +46,7 @@ Foreach($i in $EXT_PROGS) {
             Invoke-WebRequest $helm_download_url -outfile "helm-$TAG-windows-amd64.zip"
             mkdir "C:\Program Files\helm"
             Expand-Archive helm-$TAG-windows-amd64.zip -DestinationPath "C:\Program Files\helm"
-            #directly edit the registery to add helm to path
+            # Directly edit the registery to add helm to PATH. Will require a restart to stick.
             $regPath = "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment"
             $value = (Get-ItemProperty $regPath -Name Path).Path
             $newValue = $value+";C:\Program Files\helm\windows-amd64"
@@ -53,18 +57,20 @@ Foreach($i in $EXT_PROGS) {
         }
     }
 }
-#after dependencies are installed intall bx
+
+# Install Bluemix CLI.
 if( get-command bx -erroraction 'silentlycontinue') {
     echo "bx already installed"
 } else {
     iex(New-Object Net.WebClient).DownloadString("https://clis.ng.bluemix.net/install/powershell")
     C:\"Program Files"\IBM\Bluemix\bin\bx.exe api api.ng.bluemix.net
 }
-#after bx is installed, install plugins
+
+# Install Bluemix CLI Plugins.
 $EXT_PLUGINS = "container-registry","container-service","dev","IBM-Containers"
 $EXT_PLUGINS = New-Object System.Collections.ArrayList(,$EXT_PLUGINS)
 $pluginlist = C:\"Program Files"\IBM\Bluemix\bin\bx.exe plugin list
-#parse list to determine what plugins we have installed already
+# Parse bx plugin list to determine what plugins are installed already.
 for ($i=2; $i -lt $pluginlist.length; $i++) {
     $item = $pluginlist[$i].split(" ",2)
     if($item[0] -match "\bdev\b") {
@@ -81,10 +87,7 @@ for ($i=2; $i -lt $pluginlist.length; $i++) {
         $EXT_PLUGINS.remove("IBM-Containers")
     }
 }
-#install plugins
-if( $EXT_PLUGINS.contains("dev")) {
-    C:\"Program Files"\IBM\Bluemix\bin\bx.exe plugin install dev -r Bluemix
-}
+# Install plugins.
 if( $EXT_PLUGINS.contains("container-registry")) {
     C:\"Program Files"\IBM\Bluemix\bin\bx.exe plugin install container-registry -r Bluemix
 }
@@ -94,7 +97,11 @@ if( $EXT_PLUGINS.contains("container-service")) {
 if( $EXT_PLUGINS.contains("IBM-Containers")) {
     C:\"Program Files"\IBM\Bluemix\bin\bx.exe plugin install IBM-Containers -r Bluemix
 }
+if( $EXT_PLUGINS.contains("dev")) {
+    C:\"Program Files"\IBM\Bluemix\bin\bx.exe plugin install dev -r Bluemix
+}
 
+# Request Restart to save changes to PATH.
 $restart = Read-Host "A system restart is required. Would you like to restart now (y/n)? (default is n)"
 if($restart -eq "y" -Or $restart -eq "yes") {
     Restart-Computer
