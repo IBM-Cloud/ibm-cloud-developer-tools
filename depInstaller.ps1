@@ -53,7 +53,7 @@ Foreach($i in $EXT_PROGS) {
     }
 }
 #after dependencies are installed intall bx
-if( get-command bx ) {
+if( get-command bx -erroraction 'silentlycontinue') {
     echo "bx already installed"
 } else {
     iex(New-Object Net.WebClient).DownloadString("https://clis.ng.bluemix.net/install/powershell")
