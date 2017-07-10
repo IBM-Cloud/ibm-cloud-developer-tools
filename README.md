@@ -21,5 +21,5 @@ Set-ExecutionPolicy Unrestricted
 1. Open Windows Powershell by right-clicking and select "Run as Administrator".
 2. Run this command:
 ```
-Set-ExecutionPolicy Unrestricted; iex(New-Object Net.WebClient).DownloadString('https://raw.github.ibm.com/MIL/idt-windows-installer/master/idt-win-installer.ps1?token=AAACmnszZo3lFbNoxu-xATV5Yiy55Sb1ks5ZbQyrwA%3D%3D')
+Set-ExecutionPolicy Unrestricted; iex(New-Object Net.WebClient).DownloadString('http://ibm.biz/idt-win-installer')
 ```
