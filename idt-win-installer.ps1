@@ -1,13 +1,17 @@
 # idt-win-installer
 # Installs IBM Developer Bluemix CLI plugin and all dependencies.
 
+# Check for 64-bit Platform - Dev and Helm do not have 32-bit versions.
+if ([Environment]::Is64BitProcess -ne [Environment]::Is64BitOperatingSystem)
+{
+    
+}
+
 # Running as admin defaults to system32 change to home directory.
 cd ~
 
-# This assumes a 64 bit machine, as helm and the dev plugin have no 32 bit versions.
-$EXT_PROGS = "git,https://git-scm.com","docker,https://docs.docker.com/engine/installation","kubectl,https://kubernetes.io/docs/tasks/tools/install-kubectl/","helm,https://github.com/kubernetes/helm/blob/master/docs/install.md"
-
 # Install dependencies - git, docker, kubectl, helm.
+$EXT_PROGS = "git,https://git-scm.com","docker,https://docs.docker.com/engine/installation","kubectl,https://kubernetes.io/docs/tasks/tools/install-kubectl/","helm,https://github.com/kubernetes/helm/blob/master/docs/install.md"
 Foreach($i in $EXT_PROGS) {
     $prog_bin, $prog_url = $i.split(",")
     echo "Checking for dependency $prog_bin"
