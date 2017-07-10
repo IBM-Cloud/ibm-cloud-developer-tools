@@ -92,3 +92,8 @@ if( $EXT_PLUGINS.contains("container-service")) {
 if( $EXT_PLUGINS.contains("IBM-Containers")) {
     C:\"Program Files"\IBM\Bluemix\bin\bx.exe plugin install IBM-Containers -r Bluemix
 }
+
+$restart = Read-Host "A system restart is required. Would you like to restart now (y/n)? (default is n)"
+if($restart -eq "y" -Or $restart -eq "yes") {
+    Restart-Computer
+}
