@@ -2,7 +2,7 @@
 
 PowerShell script that downloads and installs the Developer Bluemix CLI Plugin and all of its dependencies.
 
-# Single-line Running
+## Single-line Running
 
 1. Open Windows PowerShell by right-clicking and select "Run as Administrator".
 2. Run this command:
@@ -10,7 +10,7 @@ PowerShell script that downloads and installs the Developer Bluemix CLI Plugin a
 Set-ExecutionPolicy Unrestricted; iex(New-Object Net.WebClient).DownloadString('http://ibm.biz/idt-win-installer')
 ```
 
-# Running from Download
+## Running from Download
 
 1. Download or clone this repository.
 2. Open Windows PowerShell by right-clicking and selecting "Run as administrator".
