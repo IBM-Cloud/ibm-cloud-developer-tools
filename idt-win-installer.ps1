@@ -72,7 +72,7 @@ if( get-command bx -erroraction 'silentlycontinue') {
 }
 
 # Install Bluemix CLI Plugins.
-$EXT_PLUGINS = "container-registry","container-service","dev","IBM-Containers"
+$EXT_PLUGINS = "container-registry","container-service","dev","IBM-Containers","schematics"
 $EXT_PLUGINS = New-Object System.Collections.ArrayList(,$EXT_PLUGINS)
 $pluginlist = C:\"Program Files"\IBM\Bluemix\bin\bx.exe plugin list
 # Parse bx plugin list to determine what plugins are installed already.
@@ -90,6 +90,9 @@ for ($i=2; $i -lt $pluginlist.length; $i++) {
     } elseif ($item[0] -match "\bIBM-Containers\b") {
         echo "IBM-Containers is installed"
         $EXT_PLUGINS.remove("IBM-Containers")
+    } elseif ($item[0] -match "\bschematics\b") {
+        echo "schematics is installed"
+        $EXT_PLUGINS.remove("schematics")
     }
 }
 # Install plugins.
@@ -101,6 +104,9 @@ if( $EXT_PLUGINS.contains("container-service")) {
 }
 if( $EXT_PLUGINS.contains("IBM-Containers")) {
     C:\"Program Files"\IBM\Bluemix\bin\bx.exe plugin install IBM-Containers -r Bluemix
+}
+if( $EXT_PLUGINS.contains("schematics")) {
+    C:\"Program Files"\IBM\Bluemix\bin\bx.exe plugin install schematics -r Bluemix
 }
 if( $EXT_PLUGINS.contains("dev")) {
     C:\"Program Files"\IBM\Bluemix\bin\bx.exe plugin install dev -r Bluemix
