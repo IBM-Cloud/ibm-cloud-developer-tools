@@ -26,9 +26,9 @@ Foreach($i in $EXT_PROGS) {
             .\git-installer.exe /SILENT /PathOption="Cmd" | Out-Null
             rm "git-installer.exe"
         } elseif ($prog_bin -eq "docker") {
-            Invoke-WebRequest "https://download.docker.com/win/stable/DockerToolbox.exe" -outfile "DockerToolbox.exe"
-            .\DockerToolbox.exe /a /SILENT | Out-Null
-            rm "DockerToolbox.exe"
+            Invoke-WebRequest "https://download.docker.com/win/stable/InstallDocker.msi" -outfile "InstallDocker.msi"
+            .\InstallDocker.msi /a /passive | Out-Null
+            rm "InstallDocker.msi"
         } elseif ($prog_bin -eq "kubectl") {
             $kube_version = (Invoke-WebRequest "https://storage.googleapis.com/kubernetes-release/release/stable.txt").Content
             $kube_version = $kube_version -replace "`n|`r"
