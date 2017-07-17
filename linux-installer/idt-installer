@@ -1,0 +1,382 @@
+#!/bin/bash
+#------------------------------------------------------------------------------
+# Script:  idt-installer - IBM Cloud Developer Tools CLI installer
+#------------------------------------------------------------------------------
+# Bluemix Developer CLI Installer script for MacOS / Linux / Win10 systems
+#------------------------------------------------------------------------------
+# Copyright (c) 2017, International Business Machines. All Rights Reserved.
+#------------------------------------------------------------------------------
+
+VERSION="0.6"
+PROG="IBM Developer Tools - Installer" 
+INSTALLER_URL="https://ibm.biz/idt-installer"
+GIT_URL="https://github.com/ibm-cloud-tools/idt-installer"
+SLACK_URL="https://ibm.biz/IBMCloudNativeSlack"
+
+#-- External programs, format is "binary, curl, install url"
+EXT_PROGS=(
+  "git,git,https://git-scm.com/downloads"
+  "docker,docker,https://docs.docker.com/engine/installation/"
+  "kubectl,kubectl,https://kubernetes.io/docs/tasks/tools/install-kubectl/"
+  "helm,kubernetes-helm,https://github.com/kubernetes/helm/blob/master/docs/install.md"
+)
+
+#-- Bluemix plugins to process
+PLUGINS=(
+  "container-registry"
+  "container-service"
+  "dev"
+  "schematics"
+  "sdk-gen"
+)
+
+#------------------------------------------------------------------------------
+function help {
+  cat <<-!!EOF
+  
+	Usage: ${PROG} [<args>]
+  
+	Where <args> is:
+	  install             [Default] Perform full install of all needed CLIs and Plugins
+	  uninstall           Uninstall full IBM Cloud CLI env, including 'bx', and plugins
+	  help | -h | -?      Show this help
+    --nobrew            Force not using 'brew' installer on MacOS
+    --trace             Eanble verbose tracing of all activity
+  
+	If "install" (or no action provided), a full CLI installation (or update) will occur:
+  1. Pre-req check for 'git', 'docker', 'kubectl', and 'helm'
+  2. Install latest IBM Cloud 'bx' CLI
+  3. Install all required plugins
+	
+	If "uninstall", the IBM Cloud CLI and plugins are removed from the system, including personal metadata.
+  Note: Pre-req CLIs listed above are NOT uninstalled.
+  
+	Chat with us on Slack: ${SLACK_URL}, channel #bluemix-dev-services
+	Submit any issues to : ${GIT_URL}/issues
+
+!!EOF
+}
+
+
+#------------------------------------------------------------------------------
+#-- ${FUNCNAME[1]} == Calling function's name
+#-- Colors escape seqs
+YEL='\033[1;33m'
+CYN='\033[0;36m'
+GRN='\033[1;32m'
+RED='\033[1;31m'
+NRM='\033[0m'
+
+function log {
+  echo -e "${CYN}[${FUNCNAME[1]}]${NRM} $*"
+}
+
+function warn {
+  echo -e "${CYN}[${FUNCNAME[1]}]${NRM} ${YEL}WARN${NRM}: $*"
+}
+
+function error {
+  echo -e "${CYN}[${FUNCNAME[1]}]${NRM} ${RED}ERROR${NRM}: $*"
+  exit -1
+}
+
+function prompt {
+  label=${1}
+  default=${2}
+  if [[ -z $default ]]; then
+    echo -en "${label}: ${CYN}" > /dev/tty
+  else
+    echo -en "${label} [$default]: ${CYN}"  > /dev/tty
+  fi
+  read -r
+  echo -e "${NRM}"  > /dev/tty
+  #-- Use $REPLY to get user's input
+}
+
+function prompt_password {
+  label=${1}
+  echo -en "${label}: ${CYN}" > /dev/tty
+  read -rs    # hide input
+  echo -e "${NRM}"  > /dev/tty
+  #-- Use $REPLY to get user's input
+}
+
+#------------------------------------------------------------------------------
+function uninstall {
+  if [[ -t 0 ]]; then   #-- are we in a terminal?
+    echo
+    prompt "Please confirm you want to uninstall IBM Developer Tools (y/N)?"
+    if [[ "$REPLY" != [Yy]* ]]; then
+      log "Uninstall aborted at user request"
+      return
+    fi
+  fi
+  warn "Starting Uninstall..."
+  log "You may be prompted for 'sudo' password."
+
+  log "Removing Bluemix CLI..."
+  if [[ "${PLATFORM}" == "Darwin" && "$USEBREW" == true ]]; then
+    brew cask uninstall "bluemix-cli"
+  else
+    sudo rm -f  /usr/local/bin/bluemix
+    sudo rm -f  /usr/local/bin/bx
+    sudo rm -f  /usr/local/bin/bluemix-analytics
+    sudo rm -rf /usr/local/Bluemix
+    #-- Taken from bluemix CLI brew uninstaller
+    if [[ -f /etc/profile ]]; then
+      sudo sed -E -i ".bluemix_uninstall_bak" \
+                        -e '/^### Added by the Bluemix CLI$/d' \
+                        -e '/^source \/usr\/local\/Bluemix\/bx\/bash_autocomplete$/d' \
+                        /etc/profile
+    fi
+    if [[ -f ~/.bashrc ]]; then
+      sed -E -i ".bluemix_uninstall_bak" \
+                   -e '/^### Added by the Bluemix CLI$/d' \
+                   -e '/^source \/usr\/local\/Bluemix\/bx\/bash_autocomplete$/d' \
+                   ~/.bashrc
+    fi
+    if [[ -f ~/.zshrc ]]; then
+      sed -E -i ".bluemix_uninstall_bak" \
+                   -e '/^### Added by the Bluemix CLI$/d' \
+                   -e '/^source \/usr\/local\/Bluemix\/bx\/zsh_autocomplete$/d' \
+                   ~/.zshrc
+    fi
+  fi
+  env_setup remove
+
+  rm -rf ~/.bluemix
+  
+  log "Uninstall finished."
+}
+
+#------------------------------------------------------------------------------
+function install {
+  log "Starting Full Installation..."
+  log "Note: You may be prompted for your 'sudo' password during install."
+  install_deps
+  install_bx
+  install_plugins
+  env_setup add
+  log "Install finished."
+}
+
+#------------------------------------------------------------------------------
+function install_deps {
+  has_error=false
+  for item in "${EXT_PROGS[@]}"; do
+    #-- Parse array item into vars
+    IFS="," read -r prog_bin prog_brew prog_url <<< "$item"
+    log "Checking for external dependency: ${prog_bin}"
+    if [[ -z "$(which "$prog_bin")" ]]; then
+      log "${prog_bin} not found, attempting to install..."
+      if [[ "$PLATFORM" == "Darwin" && "$USEBREW" == true ]]; then
+        brew install "$prog_brew"
+        log  "You should review any setup requirements for '${prog_bin}' from: ${prog_url}"
+      elif [[ "$PLATFORM" != "Windows" && "$prog_bin" == "kubectl" ]]; then
+        curl --progress-bar -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/darwin/amd64/kubectl
+        chmod +x ./kubectl
+        sudo mv ./kubectl /usr/local/bin/kubectl
+        log  "Review any setup requirements for '${prog_bin}' from: ${prog_url}"
+      elif [[ "$PLATFORM" != "Windows" && "$prog_bin" == "helm" ]]; then
+        curl -sL https://raw.githubusercontent.com/kubernetes/helm/master/scripts/get | bash
+        log  "Review any setup requirements for '${prog_bin}' from: ${prog_url}"
+      else
+        warn "Unable to automatically install '${prog_bin}'"
+        log  "You must manually install '${prog_bin}' from: ${prog_url}"
+        has_error=true
+      fi
+    fi
+  done
+  if [[ "$has_error" == true ]]; then
+    error "One or more prereqs are missing. You must install these prior to using re-running this utility"
+  fi
+}
+
+#------------------------------------------------------------------------------
+function install_bx {
+  if [[ -z "$(which bluemix)" ]]; then
+    log "Installing IBM Cloud 'Bluemix' CLI..."
+    log "Finding latest version of Bluemix CLI for platform '${PLATFORM}'..."
+    url="http://public.dhe.ibm.com/cloud/bluemix/cli/bluemix-cli/"
+    #MacOS: Bluemix_CLI_0.4.6.pkg
+    #Linux: Bluemix_CLI_0.4.6_amd64.tar.gz
+    #Win:   Bluemix_CLI_0.4.6_amd64.exe
+    case "$PLATFORM" in
+    "Darwin") 
+      if [[ "$USEBREW" == true ]]; then
+        brew cask reinstall "caskroom/cask/bluemix-cli"
+      else
+        latest=$(curl -s ${url} | grep "Bluemix_CLI_.*\.pkg" | sort | tail -1 | sed  's/^.*\(Bluemix_CLI_.*\.pkg\).*$/\1/')
+        log "Pulling down instance: ${latest}"
+        curl --progress-bar "${url}${latest}" > "${TMPDIR}/${latest}"
+        log "Running installer on: ${latest}"
+        sudo installer -pkg "${TMPDIR}/${latest}" -target /
+      fi
+      ;;
+    "Linux")  
+      latest=$(curl -s ${url} | grep "Bluemix_CLI_[0-9]\.[0-9]\.[0-9]_amd64.tar.gz" | sort | tail -1 | sed  's/^.*\(Bluemix_CLI_.*_amd64\.tar\.gz\).*$/\1/')
+      log "Pulling down instance: ${latest}"
+      curl --progress-bar "${url}${latest}" > "${TMPDIR}/${latest}"
+      log "Running installer on: ${latest}"
+      cd "${TMPDIR}" || exit
+      tar xvfz "./${latest}"
+      sudo Bluemix_CLI/install_bluemix_cli
+      rm -rf Bluemix_CLI
+      cd - || exit
+      ;;
+    "Windows") 
+      latest=$(curl -s ${url} | grep "Bluemix_CLI_[0-9]\.[0-9]\.[0-9]_amd64.exe" | sort | tail -1 | sed  's/^.*\(Bluemix_CLI_.*_amd64\.exe\).*$/\1/')
+      log "Pulling down instance: ${latest}"
+      curl --progress-bar "${url}${latest}" > "${TMPDIR}/${latest}"
+      log "Calling Windows installer..."
+      "${TMPDIR}/${latest}"
+      ;;
+    esac
+    rm -f "${TMPDIR}/${latest}" 2>/dev/null
+
+    log "IBM Cloud CLI install finished."
+  else #-- Upgrade
+    log "Updating exisitng IBM Cloud CLI..."
+    bx update
+  fi
+  log "Running 'bx --version'..."
+  bx --version
+}
+
+#------------------------------------------------------------------------------
+function install_plugins {
+  log "Installaing / updating required plugins..."
+  for plugin in "${PLUGINS[@]}"; do
+    log "Checking status of plugin: ${plugin}"
+    read -r p ver <<< "$(bx plugin list | grep "^${plugin} ")"
+    if [[ -z "$p" ]]; then
+      log "Installing plugin '$plugin'"
+      bx plugin install -r Bluemix "$plugin"
+    else
+      log "Attempting to update plugin '$plugin' from version '$ver'"
+      bx plugin update -r Bluemix "$plugin"
+    fi
+  done
+  log "Running 'bx plugin list'..."
+  bx plugin list
+  log "Finished installing/updating plugins" 
+}
+
+#------------------------------------------------------------------------------
+function env_setup {
+  env_file=""
+  if   [[ -f ~/.bashrc ]]      ; then env_file=~/.bashrc
+  elif [[ -f ~/.bash_profile ]]; then env_file=~/.bash_profile
+  elif [[ -f ~/.profile ]]     ; then env_file=~/.profile
+  else
+    env_file=~/.bashrc
+    warn "Creating new '${env_file}' file to contain aliases"
+    touch "${env_file}" || error "Failed to create '${env_file}' file!"
+  fi
+  case "$1" in
+  "add")
+    if [[ -z "$(grep 'alias idt="bluemix dev"' "$env_file")" ]]; then
+      log "Adding 'idt' aliases to: ${env_file}"
+      cp -f "$env_file" "$env_file".idt_install_bak || error "Add - Failed to backup file: ${env_file}"
+      echo '#-- Added by the IDT Installer' >> "$env_file"
+      echo 'alias idt="bluemix dev"'        >> "$env_file"
+      if [[ "$PLATFORM" == "Darwin" && "$USEBREW" == false ]]; then
+        echo 'alias idt-update="curl -sL' "$INSTALLER_URL" '| bash -s -- --nobrew"' >> "$env_file"
+        echo 'alias idt-uninstall="curl -sL' "$INSTALLER_URL" '| bash -s -- --nobrew uninstall"' >> "$env_file"
+      else
+        echo 'alias idt-update="curl -sL' "$INSTALLER_URL" '| bash"' >> "$env_file"
+        echo 'alias idt-uninstall="curl -sL' "$INSTALLER_URL" '| bash -s uninstall"' >> "$env_file"
+      fi
+      warn "To access the aliases below, you need to either restart your terminal session,"
+      warn "or reload your bash env (ie '. ${env_file}')"
+    else
+      log "'idt' aliases are already defined in: ${env_file}"
+    fi
+    log "The following aliases are defined to access the 'idt' tool:"
+    log "  ${GRN}idt${NRM}           : Main command line tool for IBM Cloud Native development"
+    log "  ${GRN}idt-update${NRM}    : Update your IDT tools to the latest version"
+    log "  ${GRN}idt-uninstall${NRM} : Uninstall the IBM Developer Tools"
+  ;;
+  "remove")
+    if [[ -n "$(grep 'alias idt="bluemix dev"' "$env_file")" ]]; then
+      log "Removing 'idt' aliases from: ${env_file}"
+      sed -E -i ".idt_uninstall_bak" \
+            -e '/^#-- Added by the IDT Installer$/d' \
+            -e '/^alias idt=\"bluemix dev\"$/d' \
+            -e '/^alias idt-update=/d' \
+            -e '/^alias idt-uninstall=/d' \
+             ${env_file}
+    fi
+  ;;
+  *) error "Interal error - called with invalid parameter: ${1}";;
+  esac
+}
+
+#------------------------------------------------------------------------------
+# MAIN
+#------------------------------------------------------------------------------
+function main {
+  log "--==[ ${GRN}${PROG}, v${VERSION}${NRM} ]==--"
+  (( SECS = SECONDS ))
+
+  TMPDIR=${TMPDIR:-"/tmp"}
+  PLATFORM=$(uname)
+  ACTION=""
+  USEBREW=true
+
+  #-- Parse args
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+    "--trace")
+      warn "Enabling verbose tracing of all activity"
+      set -x
+      ;;
+    "--nobrew")   
+      USEBREW=false;
+      warn "Disabling the use of 'brew' for MacOS packages"
+      log  "Note: Ensure you are consistent with this option when installing / updating / uninstalling"
+      ;;
+    "install")    ACTION="install";;
+    "uninstall")  ACTION="uninstall";;
+    *)            ACTION="help";;
+    esac
+    shift
+  done
+
+  case "$PLATFORM" in
+  "Darwin")
+    [[ -z "$(which brew)" ]] && USEBREW=false
+    ;;
+  "Linux")  
+    warn "Linux has only been tested on Ubuntu, please let us know if you use this utility on other Distros"
+    ;;
+#  "Windows") 
+#    warn "Windows has not been tested AT ALL! Please send all errors to author."
+#    ;;
+  *) 
+    warn "Only MacOS and Linux systems are supported by this installer."
+    warn "For Windows, please follow manual installation instructions at:"
+    warn "https://console.stage1.ng.bluemix.net/docs/cloudnative/dev_cli.html#developercli"
+    error "Unsupported platform: ${PLATFORM}"
+    ;;
+  esac
+
+  case "$ACTION" in
+  "")           install;;
+  "install")    install;;
+  "uninstall")  uninstall;;
+  *)            help;;
+  esac
+
+  (( SECS = SECONDS - SECS ))
+  log "--==[ ${GRN}Total time: ${SECS} seconds${NRM} ]==--"
+}
+
+#------------------------------------------------------------------------------
+#-- Kick things off
+#------------------------------------------------------------------------------
+main "$@"
+
+#------------------------------------------------------------------------------
+# EOF
+#------------------------------------------------------------------------------
