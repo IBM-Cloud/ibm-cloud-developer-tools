@@ -1,11 +1,5 @@
 # IBM Developer Tools CLI Installer (idt-installer)
 
-### [https://github.ibm.com/kfbishop/idt-installer](https://github.ibm.com/kfbishop/idt-installer)
-
-[![](https://img.shields.io/badge/bluemix-powered-blue.svg)](https://bluemix.net)
-![Platform](https://img.shields.io/badge/platform-SWIFT-lightgrey.svg?style=flat)
-![Platform](https://img.shields.io/badge/platform-BASH-lightgrey.svg?style=flat)
-
 
 ### Table of Contents
 * [Summary](#summary)
