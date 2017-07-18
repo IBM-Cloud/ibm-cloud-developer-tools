@@ -1,5 +1,5 @@
-# developer-tools-installer
-These scripts performs an installation of the IBM Developer Tools CLI environment. The IDT is a plugin to the IBM Bluemix CLI. Our general target environment is the IBM Cloud, including public, dedicated, and local hybrid.
+# IBM Developer Tools
+These scripts perform an installation of the IBM Developer Tools CLI environment. The IDT is a plugin to the IBM Bluemix CLI. Our general target environment is the IBM Cloud, including public, dedicated, and local hybrid.
 
 
 [![](https://img.shields.io/badge/bluemix-powered-blue.svg)](https://bluemix.net)
