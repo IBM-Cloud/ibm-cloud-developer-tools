@@ -23,6 +23,11 @@ By default, this installer will use the 'brew' installer, if available. If you d
 curl -sL https://ibm.biz/idt-installer | bash -s -- --nobrew
 ```
 
+Once complete, there will be three aliases defined to access the IDT:
+- `idt` : Main command line tool for IBM cloud native development (shortcut to 'bx dev')
+- `idt-update` : Update your IDT environment to the latest versions
+- `idt-uninstall` : Uninstall the IBM Developer Tools
+
 Access the [platform-specific readme](./linux-installer/README.md) for additional details.
 
 This script has only been tested on Ubuntu Linux systems, although it should behave properly on other distros. If you run into any issues, please let us know on [Slack](https://ibm.biz/IBMCloudNativeSlack) or file an issue on our [GitHub repo](https://github.com/ibm-cloud-tools/idt-installer).
@@ -40,12 +45,6 @@ Set-ExecutionPolicy Unrestricted; iex(New-Object Net.WebClient).DownloadString('
 
 Access the [Widnows-specific readme](./windows-installer/README.md) for additional details.
 
---- 
-
-Once complete, there will be three aliases defined to access the IDT:
-- `idt` : Main command line tool for IBM cloud native development (shortcut to 'bx dev')
-- `idt-update` : Update your IDT environment to the latest versions
-- `idt-uninstall` : Uninstall the IBM Developer Tools
 
 
 ## Feedback
