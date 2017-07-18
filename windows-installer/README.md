@@ -1,6 +1,6 @@
 # IBM Developer Windows Installer
 
-PowerShell script that downloads and installs the Developer Bluemix CLI Plugin and all of its dependencies.
+PowerShell script that downloads and installs the Developer Bluemix CLI Plugin and all of its dependencies on Windows 10 or newer systems.  
 
 ## Single-line Running
 
@@ -23,3 +23,8 @@ Set-ExecutionPolicy Unrestricted
 ```
 .\idt-win-installer.ps1
 ```
+
+
+### MacOS &amp; Linux Installation
+
+**WARNING**: MacOS and Linux are not supported by this installer.  See the [MacOS &amp; Linux installation](../linux-installer/README.md) for additional information.

@@ -113,12 +113,5 @@ This script has only been tested on Ubuntu Linux systems, although it should beh
 
 ### Windows
 
-**WARNING**: Windows is not supported by the installer.
-
-Please use the Windows specific installer available at: TBD
-
-
-## Feedback
-
-We can be reached on [Slack](https://ibm.biz/IBMCloudNativeSlack) or file an issue on our [GitHub repo](https://github.com/ibm-cloud-tools/idt-installer).
+**WARNING**: Windows is not supported by this installer.  See the [Windows installation](../windows-installer/README.md) for additional information.
 
