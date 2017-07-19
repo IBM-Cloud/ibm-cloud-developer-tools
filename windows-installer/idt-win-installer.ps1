@@ -27,7 +27,7 @@ Foreach($i in $EXT_PROGS) {
             rm "git-installer.exe"
         } elseif ($prog_bin -eq "docker") {
             Invoke-WebRequest "https://download.docker.com/win/stable/InstallDocker.msi" -outfile "InstallDocker.msi"
-            .\InstallDocker.msi /a /passive | Out-Null
+            msiexec /a InstallDocker.msi /passive | Out-Null
             rm "InstallDocker.msi"
         } elseif ($prog_bin -eq "kubectl") {
             $kube_version = (Invoke-WebRequest "https://storage.googleapis.com/kubernetes-release/release/stable.txt").Content
