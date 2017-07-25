@@ -17,7 +17,7 @@ The following command can install the IBM Developer tools in a single invocation
 $ curl -sL https://ibm.biz/idt-installer | bash
 ```
 
-By default, this installer will use the 'brew' installer, if available. If you do not have `brew` available on your system, execute the following command with `--nobrew` option:
+By default, this installer will use the 'brew' installer on MacOS, if available. If you explicitly do not want to use brew, execute the following command with `--nobrew` option:
 
 ```
 curl -sL https://ibm.biz/idt-installer | bash -s -- --nobrew
