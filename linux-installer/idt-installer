@@ -12,6 +12,8 @@ PROG="IBM Developer Tools - Installer"
 INSTALLER_URL="https://ibm.biz/idt-installer"
 GIT_URL="https://github.com/ibm-cloud-tools/idt-installer"
 SLACK_URL="https://ibm.biz/IBMCloudNativeSlack"
+IDT_INSTALL_BMX_URL="${IDT_INSTALL_BMX_URL:=https://clis.ng.bluemix.net/install}"
+IDT_INSTALL_BMX_REPO="${BLUEMIX_CLI_REPO_NAME:=Bluemix}"
 
 #-- External programs, format is "binary, curl, install url"
 EXT_PROGS=(
@@ -195,21 +197,19 @@ function install_deps {
 #------------------------------------------------------------------------------
 function install_bx {
   if [[ -z "$(which bluemix)" ]]; then
-    log "Installing IBM Cloud 'Bluemix' CLI..."
-    log "Finding latest version of Bluemix CLI for platform '${PLATFORM}'..."
-    url="https://clis.ng.bluemix.net/install"
+    log "Installing IBM Cloud 'Bluemix' CLI for platform '${PLATFORM}'..."
     case "$PLATFORM" in
     "Darwin") 
       if [[ "$USEBREW" == true ]]; then
         brew cask reinstall "caskroom/cask/bluemix-cli"
       else
-        log "Downloading and installing Bluemix CLI from: ${url}/osx"
-        sh <(curl -fsSL ${url}/osx)
+        log "Downloading and installing Bluemix CLI from: ${IDT_INSTALL_BMX_URL}/osx"
+        sh <(curl -fsSL ${IDT_INSTALL_BMX_URL}/osx)
       fi
       ;;
     "Linux")  
-      log "Downloading and installing Bluemix CLI from: ${url}/linux"
-      sh <(curl -fsSL ${url}/linux)
+      log "Downloading and installing Bluemix CLI from: ${IDT_INSTALL_BMX_URL}/linux"
+      sh <(curl -fsSL ${IDT_INSTALL_BMX_URL}/linux)
       ;;
     esac
     log "IBM Cloud CLI install finished."
@@ -229,10 +229,10 @@ function install_plugins {
     read -r p ver <<< "$(bx plugin list | grep "^${plugin} ")"
     if [[ -z "$p" ]]; then
       log "Installing plugin '$plugin'"
-      bx plugin install -r Bluemix "$plugin"
+      bx plugin install -r "${IDT_INSTALL_BMX_REPO}" "$plugin"
     else
       log "Attempting to update plugin '$plugin' from version '$ver'"
-      bx plugin update -r Bluemix "$plugin"
+      bx plugin update -r "${IDT_INSTALL_BMX_REPO}" "$plugin"
     fi
   done
   log "Running 'bx plugin list'..."
