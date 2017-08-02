@@ -13,7 +13,7 @@ INSTALLER_URL="https://ibm.biz/idt-installer"
 GIT_URL="https://github.com/ibm-cloud-tools/idt-installer"
 SLACK_URL="https://ibm.biz/IBMCloudNativeSlack"
 IDT_INSTALL_BMX_URL="${IDT_INSTALL_BMX_URL:=https://clis.ng.bluemix.net/install}"
-IDT_INSTALL_BMX_REPO="${BLUEMIX_CLI_REPO_NAME:=Bluemix}"
+IDT_INSTALL_BMX_REPO="${BLUEMIX_CLI_REPO:=Bluemix}"
 
 #-- External programs, format is "binary, curl, install url"
 EXT_PROGS=(
