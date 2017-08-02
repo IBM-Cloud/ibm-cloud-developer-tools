@@ -50,3 +50,16 @@ Access the [Widnows-specific readme](./windows-installer/README.md) for addition
 ## Feedback
 
 We can be reached on [Slack](https://ibm.biz/IBMCloudNativeSlack) or file an issue on our [GitHub repo](https://github.com/ibm-cloud-tools/idt-installer).
+
+
+## Internal IBM users
+
+IBM user can utilize this installer pulling the Bluemix cLI and plugins from pre-release internal servers. In order to have the installer utilize internal servers, set the following environment variables (eg in `~/.bashrc`), using the proper actual values:
+
+```
+export IDT_INSTALL_BMX_URL="https://clis.<internal_bluemix_staging_url>/install"
+export IDT_INSTALL_BMX_REPO_NAME="stage"
+export IDT_INSTALL_BMX_REPO_URL="https://plugins.<internal_bluemix_staging_url>"
+```
+
+If you need assistance on the proper values, just ask in any of the internal slack channels.
