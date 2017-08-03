@@ -17,7 +17,7 @@ The following command can install the IBM Developer tools in a single invocation
 $ curl -sL https://ibm.biz/idt-installer | bash
 ```
 
-By default, this installer will use the 'brew' installer, if available. If you do not have `brew` available on your system, execute the following command with `--nobrew` option:
+By default, this installer will use the 'brew' installer on MacOS, if available. If you explicitly do not want to use brew, execute the following command with `--nobrew` option:
 
 ```
 curl -sL https://ibm.biz/idt-installer | bash -s -- --nobrew
@@ -50,3 +50,16 @@ Access the [Widnows-specific readme](./windows-installer/README.md) for addition
 ## Feedback
 
 We can be reached on [Slack](https://ibm.biz/IBMCloudNativeSlack) or file an issue on our [GitHub repo](https://github.com/ibm-cloud-tools/idt-installer).
+
+
+## Internal IBM users
+
+IBM user can utilize this installer pulling the Bluemix cLI and plugins from pre-release internal servers. In order to have the installer utilize internal servers, set the following environment variables (eg in `~/.bashrc`), using the proper actual values:
+
+```
+export IDT_INSTALL_BMX_URL="https://clis.<internal_bluemix_staging_url>/install"
+export IDT_INSTALL_BMX_REPO_NAME="stage"
+export IDT_INSTALL_BMX_REPO_URL="https://plugins.<internal_bluemix_staging_url>"
+```
+
+If you need assistance on the proper values, just ask in any of the internal slack channels.
