@@ -14,7 +14,7 @@ The following are platform specific concerns and notes you should be aware of.
 The following command can install the IBM Developer tools in a single invocation.  Open up a terminal and run the following command:
 
 ```
-$ curl -sL https://ibm.biz/idt-installer | bash
+curl -sL https://ibm.biz/idt-installer | bash
 ```
 
 By default, this installer will use the 'brew' installer on MacOS, if available. If you explicitly do not want to use brew, execute the following command with `--nobrew` option:
@@ -43,7 +43,7 @@ To install the IBM Developer Tools CLI on Windows 10 or newer:
 Set-ExecutionPolicy Unrestricted; iex(New-Object Net.WebClient).DownloadString('http://ibm.biz/idt-win-installer')
 ```
 
-Access the [Widnows-specific readme](./windows-installer/README.md) for additional details.
+Access the [Windows-specific readme](./windows-installer/README.md) for additional details.
 
 
 

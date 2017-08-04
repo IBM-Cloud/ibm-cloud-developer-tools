@@ -1,5 +1,6 @@
 # idt-win-installer
 # Installs IBM Developer Bluemix CLI plugin and all dependencies.
+# VERSION="0.8"
 
 # Check for 64-bit Platform - Dev and Helm do not have 32-bit versions.
 if ([Environment]::Is64BitProcess -ne [Environment]::Is64BitOperatingSystem)
