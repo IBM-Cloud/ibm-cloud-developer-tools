@@ -176,8 +176,21 @@ function install_deps {
         brew install "$prog_brew"
         log  "You should review any setup requirements for '${prog_bin}' from: ${prog_url}"
       elif [[ "$prog_bin" == "kubectl" ]]; then
-        curl --progress-bar -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/darwin/amd64/kubectl
-        chmod +x ./kubectl
+        case $PLATFORM in 
+         "Linux")
+		curl --progress-bar -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl
+         	;;
+	"Darwin")
+		curl --progress-bar -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/darwin/amd64/kubectl
+	 	;;
+	*)
+    		warn "Only MacOS and Linux systems are supported by this installer."
+    		warn "For Windows, please follow manual installation instructions at:"
+    		warn "https://github.com/IBM-Bluemix/developer-tools-installer"
+    		error "Unsupported platform: ${PLATFORM}"
+    		;;
+  	esac	
+	chmod +x ./kubectl
         sudo mv ./kubectl /usr/local/bin/kubectl
         log  "Review any setup requirements for '${prog_bin}' from: ${prog_url}"
       elif [[ "$prog_bin" == "helm" ]]; then
