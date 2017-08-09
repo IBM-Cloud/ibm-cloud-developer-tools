@@ -4,6 +4,7 @@ These scripts perform an installation of the IBM Cloud Developer Tools CLI envir
 
 [![](https://img.shields.io/badge/bluemix-powered-blue.svg)](https://bluemix.net)
 ![Platform](https://img.shields.io/badge/platform-BASH-lightgrey.svg?style=flat)
+![Platform](https://img.shields.io/badge/platform-PowerShell-lightgrey.svg?style=flat)
 
 
 The following are platform specific concerns and notes you should be aware of.

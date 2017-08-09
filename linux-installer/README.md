@@ -1,5 +1,7 @@
 # IBM Developer Tools CLI Installer (idt-installer)
 
+[![](https://img.shields.io/badge/bluemix-powered-blue.svg)](https://bluemix.net)
+![Platform](https://img.shields.io/badge/platform-BASH-lightgrey.svg?style=flat)
 
 ### Table of Contents
 * [Summary](#summary)
