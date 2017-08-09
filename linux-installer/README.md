@@ -12,6 +12,7 @@
     * [MacOS](#macos)
     * [Linux](#linux)
     * [Windows](#windows)
+* [Internal IBM users](#internal-ibm-users)
 
 
 ## Summary
@@ -109,3 +110,17 @@ This script has only been tested on Ubuntu Linux systems, although it should beh
 
 **WARNING**: Windows is not supported by this installer.  See the [Windows installation](../windows-installer/README.md) for additional information.
 
+
+
+## Internal IBM users
+
+IBM users can utilize this installer pulling the Bluemix CLI and plugins from pre-release internal servers. In order to have the installer utilize internal servers, set the following environment variables (eg in `~/.bashrc`), substituting the proper internal URLs. Shown below are the default public URLs:
+
+```
+export IDT_INSTALL_USE_PROD=true
+export IDT_INSTALL_BMX_URL="https://clis.ng.bluemix.net/install"
+export IDT_INSTALL_BMX_REPO_NAME="internal"
+export IDT_INSTALL_BMX_REPO_URL="https://plugins.ng.bluemix.net"
+```
+
+If you need assistance on the proper values, just ask in any of the IBM internal slack channels.
