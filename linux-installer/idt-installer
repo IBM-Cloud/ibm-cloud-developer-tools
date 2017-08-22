@@ -1,18 +1,23 @@
 #!/bin/bash
 #------------------------------------------------------------------------------
-# Script:  idt-installer - IBM Cloud Developer Tools CLI installer
+# Script:  idt-installer
 #------------------------------------------------------------------------------
-# Bluemix Developer CLI Installer script for MacOS / Linux / Win10 systems
+# IBM Cloud Developer Tools - CLI installer script for MacOS and Linux systems
 #------------------------------------------------------------------------------
 # Copyright (c) 2017, International Business Machines. All Rights Reserved.
 #------------------------------------------------------------------------------
 
 VERSION="0.8"
-PROG="IBM Developer Tools - Installer" 
+PROG="IBM Cloud Developer Tools - Installer" 
 INSTALLER_URL="https://ibm.biz/idt-installer"
 GIT_URL="https://github.com/ibm-cloud-tools/idt-installer"
 SLACK_URL="https://ibm.biz/IBMCloudNativeSlack"
-IDT_INSTALL_BMX_URL="${IDT_INSTALL_BMX_URL:=https://clis.ng.bluemix.net/install}"
+DEFAULT_BMX_URL="https://clis.ng.bluemix.net/install"
+
+if [[ "$IDT_INSTALL_USE_PROD" != false ]]; then
+  unset IDT_INSTALL_BMX_URL IDT_INSTALL_BMX_REPO_NAME IDT_INSTALL_BMX_REPO_URL
+fi
+IDT_INSTALL_BMX_URL="${IDT_INSTALL_BMX_URL:=$DEFAULT_BMX_URL}"
 IDT_INSTALL_BMX_REPO_NAME="${IDT_INSTALL_BMX_REPO_NAME:=Bluemix}"
 IDT_INSTALL_BMX_REPO_URL="${IDT_INSTALL_BMX_REPO_URL:=https://plugins.ng.bluemix.net}"
 
@@ -120,30 +125,30 @@ function uninstall {
   log "Removing Bluemix CLI..."
   if [[ "${PLATFORM}" == "Darwin" && "$USEBREW" == true ]]; then
     brew cask uninstall "bluemix-cli"
-  else
-    sudo rm -f  /usr/local/bin/bluemix
-    sudo rm -f  /usr/local/bin/bx
-    sudo rm -f  /usr/local/bin/bluemix-analytics
-    sudo rm -rf /usr/local/Bluemix
-    #-- Taken from bluemix CLI brew uninstaller
-    if [[ -f /etc/profile ]]; then
-      sudo sed -E -i ".bluemix_uninstall_bak" \
-                        -e '/^### Added by the Bluemix CLI$/d' \
-                        -e '/^source \/usr\/local\/Bluemix\/bx\/bash_autocomplete$/d' \
-                        /etc/profile
-    fi
-    if [[ -f ~/.bashrc ]]; then
-      sed -E -i ".bluemix_uninstall_bak" \
-                   -e '/^### Added by the Bluemix CLI$/d' \
-                   -e '/^source \/usr\/local\/Bluemix\/bx\/bash_autocomplete$/d' \
-                   ~/.bashrc
-    fi
-    if [[ -f ~/.zshrc ]]; then
-      sed -E -i ".bluemix_uninstall_bak" \
-                   -e '/^### Added by the Bluemix CLI$/d' \
-                   -e '/^source \/usr\/local\/Bluemix\/bx\/zsh_autocomplete$/d' \
-                   ~/.zshrc
-    fi
+  fi
+  #-- Run the following regardless
+  sudo rm -f  /usr/local/bin/bluemix
+  sudo rm -f  /usr/local/bin/bx
+  sudo rm -f  /usr/local/bin/bluemix-analytics
+  sudo rm -rf /usr/local/Bluemix
+  #-- Taken from bluemix CLI brew uninstaller
+  if [[ -f /etc/profile ]]; then
+    sudo sed -E -i ".bluemix_uninstall_bak" \
+                      -e '/^### Added by the Bluemix CLI$/d' \
+                      -e '/^source \/usr\/local\/Bluemix\/bx\/bash_autocomplete$/d' \
+                      /etc/profile
+  fi
+  if [[ -f ~/.bashrc ]]; then
+    sed -E -i ".bluemix_uninstall_bak" \
+                  -e '/^### Added by the Bluemix CLI$/d' \
+                  -e '/^source \/usr\/local\/Bluemix\/bx\/bash_autocomplete$/d' \
+                  ~/.bashrc
+  fi
+  if [[ -f ~/.zshrc ]]; then
+    sed -E -i ".bluemix_uninstall_bak" \
+                  -e '/^### Added by the Bluemix CLI$/d' \
+                  -e '/^source \/usr\/local\/Bluemix\/bx\/zsh_autocomplete$/d' \
+                  ~/.zshrc
   fi
   env_setup remove
 
@@ -214,7 +219,8 @@ function install_bx {
     log "Installing IBM Cloud 'Bluemix' CLI for platform '${PLATFORM}'..."
     case "$PLATFORM" in
     "Darwin") 
-      if [[ "$USEBREW" == true ]]; then
+      #-- Only use BREW if using default bluemix URL (not an internal url)
+      if [[ "$USEBREW" == true && "$IDT_INSTALL_BMX_REPO_NAME" == "Bluemix" ]]; then
         brew cask reinstall "caskroom/cask/bluemix-cli"
       else
         log "Downloading and installing Bluemix CLI from: ${IDT_INSTALL_BMX_URL}/osx"
@@ -291,7 +297,7 @@ function env_setup {
     log "The following aliases are defined to access the 'idt' tool:"
     log "  ${GRN}idt${NRM}           : Main command line tool for IBM Cloud Native development"
     log "  ${GRN}idt-update${NRM}    : Update your IDT tools to the latest version"
-    log "  ${GRN}idt-uninstall${NRM} : Uninstall the IBM Developer Tools"
+    log "  ${GRN}idt-uninstall${NRM} : Uninstall the IBM Cloud Developer Tools"
   ;;
   "remove")
     if [[ -n "$(grep 'alias idt="bluemix dev"' "$env_file")" ]]; then
