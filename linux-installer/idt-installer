@@ -170,6 +170,14 @@ function install {
 }
 
 #------------------------------------------------------------------------------
+function warn_unsupported {
+  warn "Only MacOS and Linux systems are supported by this installer."
+  warn "For Windows, please follow manual installation instructions at:"
+  warn "${GIT_URL}"
+  error "Unsupported platform: ${PLATFORM}"
+}
+
+#------------------------------------------------------------------------------
 function install_deps {
   has_error=false
   #-- check for/install brew for macos
@@ -200,10 +208,7 @@ function install_deps {
           curl --progress-bar -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/darwin/amd64/kubectl
           ;;
         *)
-          warn "Only MacOS and Linux systems are supported by this installer."
-          warn "For Windows, please follow manual installation instructions at:"
-          warn "${GIT_URL}"
-          error "Unsupported platform: ${PLATFORM}"
+          warn_unsupported
           ;;
         esac
       chmod +x ./kubectl
@@ -372,10 +377,7 @@ function main {
     warn "Linux has only been tested on Ubuntu, please let us know if you use this utility on other Distros"
     ;;
   *)
-    warn "Only MacOS and Linux systems are supported by this installer."
-    warn "For Windows, please follow manual installation instructions at:"
-    warn "${GIT_URL}"
-    error "Unsupported platform: ${PLATFORM}"
+    warn_unsupported
     ;;
   esac
 
