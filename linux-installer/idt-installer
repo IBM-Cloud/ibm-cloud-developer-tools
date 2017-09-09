@@ -199,6 +199,32 @@ function install_deps {
       if [[ "$PLATFORM" == "Darwin" && "$USEBREW" == true ]]; then
         brew install "$prog_brew"
         log  "You should review any setup requirements for '${prog_bin}' from: ${prog_url}"
+      elif [[ "$prog_bin" == "git" ]]; then
+        if [ "$(uname -v | grep -q Ubuntu)" ]; then
+          # Make sure add-apt-repository is installed.
+          sudo apt-get install software-properties-common python-software-properties
+          # Get up-to-date git.
+          sudo add-apt-repository -y ppa:git-core/ppa
+          sudo apt-get -y update
+          sudo apt-get -y install git
+          log  "Review any setup requirements for '${prog_bin}' from: ${prog_url}"
+        else
+          warn_unsupported
+        fi
+      elif [[ "$prog_bin" == "docker" ]]; then
+        case $PLATFORM in
+         "Linux")
+           curl -fsSL get.docker.com | sudo sh -
+           # Allow docker to run as a non-root user.
+           sudo groupadd docker
+           sudo usermod -aG docker $USER
+           log  "Review any setup requirements for '${prog_bin}' from: ${prog_url}"
+           ;;
+         *)
+           warn_unsupported
+          ;;
+        esac
+        log  "Review any setup requirements for '${prog_bin}' from: ${prog_url}"
       elif [[ "$prog_bin" == "kubectl" ]]; then
         case $PLATFORM in
         "Linux")
@@ -215,7 +241,7 @@ function install_deps {
         sudo mv ./kubectl /usr/local/bin/kubectl
         log  "Review any setup requirements for '${prog_bin}' from: ${prog_url}"
       elif [[ "$prog_bin" == "helm" ]]; then
-        curl -sL https://raw.githubusercontent.com/kubernetes/helm/master/scripts/get | bash
+        curl -fsSL https://raw.githubusercontent.com/kubernetes/helm/master/scripts/get | bash
         log  "Review any setup requirements for '${prog_bin}' from: ${prog_url}"
       else
         warn "Unable to automatically install '${prog_bin}'"
