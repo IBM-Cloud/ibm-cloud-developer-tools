@@ -96,20 +96,23 @@ for ($i=2; $i -lt $pluginlist.length; $i++) {
     }
 }
 # Install plugins.
+if( $EXT_PLUGINS.contains("cloud-functions")) {
+    C:\"Program Files"\IBM\Bluemix\bin\bx.exe plugin install cloud-functions -r Bluemix
+}
 if( $EXT_PLUGINS.contains("container-registry")) {
     C:\"Program Files"\IBM\Bluemix\bin\bx.exe plugin install container-registry -r Bluemix
 }
 if( $EXT_PLUGINS.contains("container-service")) {
     C:\"Program Files"\IBM\Bluemix\bin\bx.exe plugin install container-service -r Bluemix
 }
-if( $EXT_PLUGINS.contains("IBM-Containers")) {
-    C:\"Program Files"\IBM\Bluemix\bin\bx.exe plugin install IBM-Containers -r Bluemix
-}
 if( $EXT_PLUGINS.contains("schematics")) {
     C:\"Program Files"\IBM\Bluemix\bin\bx.exe plugin install schematics -r Bluemix
 }
 if( $EXT_PLUGINS.contains("dev")) {
     C:\"Program Files"\IBM\Bluemix\bin\bx.exe plugin install dev -r Bluemix
+}
+if( $EXT_PLUGINS.contains("sdk-gen")) {
+    C:\"Program Files"\IBM\Bluemix\bin\bx.exe plugin install sdk-gen -r Bluemix
 }
 
 # Request Restart to save changes to PATH.

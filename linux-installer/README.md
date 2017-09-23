@@ -36,6 +36,7 @@ Once complete, there will be three aliases defined to access the IDT:
 
 Note: You will need to either restart your terminal session, or reload your bash environment (ie `. ~/.bashrc`) to access these commands.
 
+
 ### Debugging
 
 If you have any issues with the instaler, try running with the `--trace` argument which will produce verbose output to assist us in diagnosing your problem:

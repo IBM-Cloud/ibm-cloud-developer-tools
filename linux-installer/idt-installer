@@ -7,11 +7,11 @@
 # Copyright (c) 2017, International Business Machines. All Rights Reserved.
 #------------------------------------------------------------------------------
 
-VERSION="0.8"
+VERSION="1.0.1"
 PROG="IBM Cloud Developer Tools - Installer" 
 INSTALLER_URL="https://ibm.biz/idt-installer"
-GIT_URL="https://github.com/ibm-cloud-tools/idt-installer"
-SLACK_URL="https://ibm.biz/IBMCloudNativeSlack"
+GIT_URL="https://github.com/ibm-cloud-tools/ibm-cloud-developer"
+SLACK_URL="https://slack-invite-ibm-cloud-tech.mybluemix.net/"
 DEFAULT_BMX_URL="https://clis.ng.bluemix.net/install"
 
 if [[ "$IDT_INSTALL_USE_PROD" != false ]]; then
@@ -29,8 +29,9 @@ EXT_PROGS=(
   "helm,kubernetes-helm,https://github.com/kubernetes/helm/blob/master/docs/install.md"
 )
 
-#-- Bluemix plugins to process
+#-- BX plugins to process
 PLUGINS=(
+  "Cloud-Functions"
   "container-registry"
   "container-service"
   "dev"
@@ -59,7 +60,7 @@ function help {
 	If "uninstall", the IBM Cloud CLI and plugins are removed from the system, including personal metadata.
   Note: Pre-req CLIs listed above are NOT uninstalled.
   
-	Chat with us on Slack: ${SLACK_URL}, channel #bluemix-dev-services
+	Chat with us on Slack: ${SLACK_URL}, channel #developer-tools
 	Submit any issues to : ${GIT_URL}/issues
 
 !!EOF
@@ -113,7 +114,7 @@ function prompt_password {
 function uninstall {
   if [[ -t 0 ]]; then   #-- are we in a terminal?
     echo
-    prompt "Please confirm you want to uninstall IBM Developer Tools (y/N)?"
+    prompt "Please confirm you want to uninstall IBM Cloud Developer Tools (y/N)?"
     if [[ "$REPLY" != [Yy]* ]]; then
       log "Uninstall aborted at user request"
       return
@@ -122,7 +123,7 @@ function uninstall {
   warn "Starting Uninstall..."
   log "You may be prompted for 'sudo' password."
 
-  log "Removing Bluemix CLI..."
+  log "Removing IBM Cloud 'bx' CLI..."
   if [[ "${PLATFORM}" == "Darwin" && "$USEBREW" == true ]]; then
     brew cask uninstall "bluemix-cli"
   fi
@@ -171,6 +172,16 @@ function install {
 #------------------------------------------------------------------------------
 function install_deps {
   has_error=false
+  #-- check for/install brew for macos
+  if [[ "$PLATFORM" == "Darwin" && "$USEBREW" != false ]]; then
+    if [[ -z "$(which brew)" && -n "$(which ruby)" ]]; then
+      warn "'brew' installer not found, attempting to install..."
+      ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+      log "'brew' installation completed."
+    fi
+  fi
+  [[ -z "$(which brew)" ]] && USEBREW=false
+
   for item in "${EXT_PROGS[@]}"; do
     #-- Parse array item into vars
     IFS="," read -r prog_bin prog_brew prog_url <<< "$item"
@@ -182,20 +193,20 @@ function install_deps {
         log  "You should review any setup requirements for '${prog_bin}' from: ${prog_url}"
       elif [[ "$prog_bin" == "kubectl" ]]; then
         case $PLATFORM in 
-         "Linux")
-		curl --progress-bar -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl
-         	;;
-	"Darwin")
-		curl --progress-bar -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/darwin/amd64/kubectl
-	 	;;
-	*)
-    		warn "Only MacOS and Linux systems are supported by this installer."
-    		warn "For Windows, please follow manual installation instructions at:"
-    		warn "https://github.com/IBM-Bluemix/developer-tools-installer"
-    		error "Unsupported platform: ${PLATFORM}"
-    		;;
-  	esac	
-	chmod +x ./kubectl
+        "Linux")
+          curl --progress-bar -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl
+          ;;
+	      "Darwin")
+		      curl --progress-bar -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/darwin/amd64/kubectl
+          ;;
+        *)
+          warn "Only MacOS and Linux systems are supported by this installer."
+          warn "For Windows, please follow manual installation instructions at:"
+          warn "${GIT_URL}"
+          error "Unsupported platform: ${PLATFORM}"
+          ;;
+        esac	
+      	chmod +x ./kubectl
         sudo mv ./kubectl /usr/local/bin/kubectl
         log  "Review any setup requirements for '${prog_bin}' from: ${prog_url}"
       elif [[ "$prog_bin" == "helm" ]]; then
@@ -215,26 +226,26 @@ function install_deps {
 
 #------------------------------------------------------------------------------
 function install_bx {
-  if [[ -z "$(which bluemix)" ]]; then
-    log "Installing IBM Cloud 'Bluemix' CLI for platform '${PLATFORM}'..."
+  if [[ -z "$(which bx)" ]]; then
+    log "Installing IBM Cloud 'bx' CLI for platform '${PLATFORM}'..."
     case "$PLATFORM" in
     "Darwin") 
       #-- Only use BREW if using default bluemix URL (not an internal url)
       if [[ "$USEBREW" == true && "$IDT_INSTALL_BMX_REPO_NAME" == "Bluemix" ]]; then
         brew cask reinstall "caskroom/cask/bluemix-cli"
       else
-        log "Downloading and installing Bluemix CLI from: ${IDT_INSTALL_BMX_URL}/osx"
+        log "Downloading and installing IBM Cloud 'bx' CLI from: ${IDT_INSTALL_BMX_URL}/osx"
         sh <(curl -fsSL ${IDT_INSTALL_BMX_URL}/osx)
       fi
       ;;
     "Linux")  
-      log "Downloading and installing Bluemix CLI from: ${IDT_INSTALL_BMX_URL}/linux"
+      log "Downloading and installing IBM Cloud 'bx' CLI from: ${IDT_INSTALL_BMX_URL}/linux"
       sh <(curl -fsSL ${IDT_INSTALL_BMX_URL}/linux)
       ;;
     esac
-    log "IBM Cloud CLI install finished."
+    log "IBM Cloud 'bx' CLI install finished."
   else #-- Upgrade
-    log "Updating exisitng IBM Cloud CLI..."
+    log "Updating exisitng IBM Cloud 'bx' CLI..."
     bx update
   fi
   log "Running 'bx --version'..."
@@ -267,6 +278,7 @@ function install_plugins {
 #------------------------------------------------------------------------------
 function env_setup {
   env_file=""
+  show_warn=false
   if   [[ -f ~/.bashrc ]]      ; then env_file=~/.bashrc
   elif [[ -f ~/.bash_profile ]]; then env_file=~/.bash_profile
   elif [[ -f ~/.profile ]]     ; then env_file=~/.profile
@@ -277,11 +289,11 @@ function env_setup {
   fi
   case "$1" in
   "add")
-    if [[ -z "$(grep 'alias idt="bluemix dev"' "$env_file")" ]]; then
+    if [[ -z "$(grep 'alias idt="bx dev"' "$env_file")" ]]; then
       log "Adding 'idt' aliases to: ${env_file}"
       cp -f "$env_file" "$env_file".idt_install_bak || error "Add - Failed to backup file: ${env_file}"
       echo '#-- Added by the IDT Installer' >> "$env_file"
-      echo 'alias idt="bluemix dev"'        >> "$env_file"
+      echo 'alias idt="bx dev"'             >> "$env_file"
       if [[ "$PLATFORM" == "Darwin" && "$USEBREW" == false ]]; then
         echo 'alias idt-update="curl -sL' "$INSTALLER_URL" '| bash -s -- --nobrew"' >> "$env_file"
         echo 'alias idt-uninstall="curl -sL' "$INSTALLER_URL" '| bash -s -- --nobrew uninstall"' >> "$env_file"
@@ -289,25 +301,33 @@ function env_setup {
         echo 'alias idt-update="curl -sL' "$INSTALLER_URL" '| bash"' >> "$env_file"
         echo 'alias idt-uninstall="curl -sL' "$INSTALLER_URL" '| bash -s uninstall"' >> "$env_file"
       fi
-      warn "To access the aliases below, you need to either restart your terminal session,"
-      warn "or reload your bash env (ie '. ${env_file}')"
+      show_warn=true
     else
       log "'idt' aliases are already defined in: ${env_file}"
     fi
-    log "The following aliases are defined to access the 'idt' tool:"
-    log "  ${GRN}idt${NRM}           : Main command line tool for IBM Cloud Native development"
-    log "  ${GRN}idt-update${NRM}    : Update your IDT tools to the latest version"
+    if [[ -f ~/.bash_profile && -z "$(grep '.bashrc' ~/.bash_profile)" ]]; then
+      log "Adding '~/.bashrc' loader into '~/.bash_profile'"
+      echo "# Load .bashrc settings"              >> ~/.bash_profile
+      echo "[ -f ~/.bashrc ] && source ~/.bashrc" >> ~/.bash_profile
+    fi
+    log "The following aliases are defined to access the IBM Cloud Developer Tools CLI:"
+    log "  ${GRN}idt${NRM}           : Main command line. Shorthand for standard '${CYN}bx dev${NRM}' command"
+    log "  ${GRN}idt-update${NRM}    : Update your IBM Cloud Developer Tools to the latest version"
     log "  ${GRN}idt-uninstall${NRM} : Uninstall the IBM Cloud Developer Tools"
+    if [[ "$show_warn" == true ]]; then
+      warn "To access the aliases above, you need to either restart your terminal session,"
+      warn "or reload your bash env (ie '. ${env_file}')"
+    fi
   ;;
   "remove")
-    if [[ -n "$(grep 'alias idt="bluemix dev"' "$env_file")" ]]; then
+    if [[ -n "$(grep 'alias idt="bx dev"' "$env_file")" ]]; then
       log "Removing 'idt' aliases from: ${env_file}"
       sed -E -i ".idt_uninstall_bak" \
             -e '/^#-- Added by the IDT Installer$/d' \
-            -e '/^alias idt=\"bluemix dev\"$/d' \
+            -e '/^alias idt=\"bx dev\"$/d' \
             -e '/^alias idt-update=/d' \
             -e '/^alias idt-uninstall=/d' \
-             ${env_file}
+            ${env_file}
     fi
   ;;
   *) error "Interal error - called with invalid parameter: ${1}";;
@@ -347,7 +367,6 @@ function main {
 
   case "$PLATFORM" in
   "Darwin")
-    [[ -z "$(which brew)" ]] && USEBREW=false
     ;;
   "Linux")  
     warn "Linux has only been tested on Ubuntu, please let us know if you use this utility on other Distros"
@@ -355,7 +374,7 @@ function main {
   *) 
     warn "Only MacOS and Linux systems are supported by this installer."
     warn "For Windows, please follow manual installation instructions at:"
-    warn "https://github.com/IBM-Bluemix/developer-tools-installer"
+    warn "${GIT_URL}"
     error "Unsupported platform: ${PLATFORM}"
     ;;
   esac
