@@ -96,8 +96,8 @@ for ($i=2; $i -lt $pluginlist.length; $i++) {
     }
 }
 # Install plugins.
-if( $EXT_PLUGINS.contains("cloud-functions")) {
-    C:\"Program Files"\IBM\Bluemix\bin\bx.exe plugin install cloud-functions -r Bluemix
+if( $EXT_PLUGINS.contains("Cloud-Functions")) {
+    C:\"Program Files"\IBM\Bluemix\bin\bx.exe plugin install Cloud-Functions -r Bluemix
 }
 if( $EXT_PLUGINS.contains("container-registry")) {
     C:\"Program Files"\IBM\Bluemix\bin\bx.exe plugin install container-registry -r Bluemix
