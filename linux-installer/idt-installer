@@ -8,7 +8,7 @@
 #------------------------------------------------------------------------------
 
 VERSION="1.0.1"
-PROG="IBM Cloud Developer Tools - Installer" 
+PROG="IBM Cloud Developer Tools - Installer"
 INSTALLER_URL="https://ibm.biz/idt-installer"
 GIT_URL="https://github.com/ibm-cloud-tools/ibm-cloud-developer"
 SLACK_URL="https://slack-invite-ibm-cloud-tech.mybluemix.net/"
@@ -42,26 +42,26 @@ PLUGINS=(
 #------------------------------------------------------------------------------
 function help {
   cat <<-!!EOF
-  
-	Usage: ${PROG} [<args>]
-  
-	Where <args> is:
-	  install             [Default] Perform full install of all needed CLIs and Plugins
-	  uninstall           Uninstall full IBM Cloud CLI env, including 'bx', and plugins
-	  help | -h | -?      Show this help
+
+  Usage: ${PROG} [<args>]
+
+  Where <args> is:
+    install             [Default] Perform full install of all needed CLIs and Plugins
+    uninstall           Uninstall full IBM Cloud CLI env, including 'bx', and plugins
+    help | -h | -?      Show this help
     --nobrew            Force not using 'brew' installer on MacOS
     --trace             Eanble verbose tracing of all activity
-  
-	If "install" (or no action provided), a full CLI installation (or update) will occur:
+
+  If "install" (or no action provided), a full CLI installation (or update) will occur:
   1. Pre-req check for 'git', 'docker', 'kubectl', and 'helm'
   2. Install latest IBM Cloud 'bx' CLI
   3. Install all required plugins
-	
-	If "uninstall", the IBM Cloud CLI and plugins are removed from the system, including personal metadata.
+
+  If "uninstall", the IBM Cloud CLI and plugins are removed from the system, including personal metadata.
   Note: Pre-req CLIs listed above are NOT uninstalled.
-  
-	Chat with us on Slack: ${SLACK_URL}, channel #developer-tools
-	Submit any issues to : ${GIT_URL}/issues
+
+  Chat with us on Slack: ${SLACK_URL}, channel #developer-tools
+  Submit any issues to : ${GIT_URL}/issues
 
 !!EOF
 }
@@ -154,7 +154,7 @@ function uninstall {
   env_setup remove
 
   rm -rf ~/.bluemix
-  
+
   log "Uninstall finished."
 }
 
@@ -167,6 +167,14 @@ function install {
   install_plugins
   env_setup add
   log "Install finished."
+}
+
+#------------------------------------------------------------------------------
+function warn_unsupported {
+  warn "Only MacOS and Linux systems are supported by this installer."
+  warn "For Windows, please follow manual installation instructions at:"
+  warn "${GIT_URL}"
+  error "Unsupported platform: ${PLATFORM}"
 }
 
 #------------------------------------------------------------------------------
@@ -191,26 +199,49 @@ function install_deps {
       if [[ "$PLATFORM" == "Darwin" && "$USEBREW" == true ]]; then
         brew install "$prog_brew"
         log  "You should review any setup requirements for '${prog_bin}' from: ${prog_url}"
+      elif [[ "$prog_bin" == "git" ]]; then
+        if [ "$(uname -v | grep -q Ubuntu)" ]; then
+          # Make sure add-apt-repository is installed.
+          sudo apt-get install software-properties-common python-software-properties
+          # Get up-to-date git.
+          sudo add-apt-repository -y ppa:git-core/ppa
+          sudo apt-get -y update
+          sudo apt-get -y install git
+          log  "Review any setup requirements for '${prog_bin}' from: ${prog_url}"
+        else
+          warn_unsupported
+        fi
+      elif [[ "$prog_bin" == "docker" ]]; then
+        case $PLATFORM in
+         "Linux")
+           curl -fsSL get.docker.com | sudo sh -
+           # Allow docker to run as a non-root user.
+           sudo groupadd docker
+           sudo usermod -aG docker $USER
+           log  "Review any setup requirements for '${prog_bin}' from: ${prog_url}"
+           ;;
+         *)
+           warn_unsupported
+          ;;
+        esac
+        log  "Review any setup requirements for '${prog_bin}' from: ${prog_url}"
       elif [[ "$prog_bin" == "kubectl" ]]; then
-        case $PLATFORM in 
+        case $PLATFORM in
         "Linux")
           curl --progress-bar -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl
           ;;
-	      "Darwin")
-		      curl --progress-bar -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/darwin/amd64/kubectl
+        "Darwin")
+          curl --progress-bar -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/darwin/amd64/kubectl
           ;;
         *)
-          warn "Only MacOS and Linux systems are supported by this installer."
-          warn "For Windows, please follow manual installation instructions at:"
-          warn "${GIT_URL}"
-          error "Unsupported platform: ${PLATFORM}"
+          warn_unsupported
           ;;
-        esac	
-      	chmod +x ./kubectl
+        esac
+      chmod +x ./kubectl
         sudo mv ./kubectl /usr/local/bin/kubectl
         log  "Review any setup requirements for '${prog_bin}' from: ${prog_url}"
       elif [[ "$prog_bin" == "helm" ]]; then
-        curl -sL https://raw.githubusercontent.com/kubernetes/helm/master/scripts/get | bash
+        curl -fsSL https://raw.githubusercontent.com/kubernetes/helm/master/scripts/get | bash
         log  "Review any setup requirements for '${prog_bin}' from: ${prog_url}"
       else
         warn "Unable to automatically install '${prog_bin}'"
@@ -229,7 +260,7 @@ function install_bx {
   if [[ -z "$(which bx)" ]]; then
     log "Installing IBM Cloud 'bx' CLI for platform '${PLATFORM}'..."
     case "$PLATFORM" in
-    "Darwin") 
+    "Darwin")
       #-- Only use BREW if using default bluemix URL (not an internal url)
       if [[ "$USEBREW" == true && "$IDT_INSTALL_BMX_REPO_NAME" == "Bluemix" ]]; then
         brew cask reinstall "caskroom/cask/bluemix-cli"
@@ -238,7 +269,7 @@ function install_bx {
         sh <(curl -fsSL ${IDT_INSTALL_BMX_URL}/osx)
       fi
       ;;
-    "Linux")  
+    "Linux")
       log "Downloading and installing IBM Cloud 'bx' CLI from: ${IDT_INSTALL_BMX_URL}/linux"
       sh <(curl -fsSL ${IDT_INSTALL_BMX_URL}/linux)
       ;;
@@ -272,7 +303,7 @@ function install_plugins {
   done
   log "Running 'bx plugin list'..."
   bx plugin list
-  log "Finished installing/updating plugins" 
+  log "Finished installing/updating plugins"
 }
 
 #------------------------------------------------------------------------------
@@ -353,7 +384,7 @@ function main {
       warn "Enabling verbose tracing of all activity"
       set -x
       ;;
-    "--nobrew")   
+    "--nobrew")
       USEBREW=false;
       warn "Disabling the use of 'brew' for MacOS packages"
       log  "Note: Ensure you are consistent with this option when installing / updating / uninstalling"
@@ -368,14 +399,11 @@ function main {
   case "$PLATFORM" in
   "Darwin")
     ;;
-  "Linux")  
+  "Linux")
     warn "Linux has only been tested on Ubuntu, please let us know if you use this utility on other Distros"
     ;;
-  *) 
-    warn "Only MacOS and Linux systems are supported by this installer."
-    warn "For Windows, please follow manual installation instructions at:"
-    warn "${GIT_URL}"
-    error "Unsupported platform: ${PLATFORM}"
+  *)
+    warn_unsupported
     ;;
   esac
 
