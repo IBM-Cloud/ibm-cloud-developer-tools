@@ -204,7 +204,7 @@ function install_deps {
         brew install "$prog_brew"
         log  "You should review any setup requirements for '${prog_bin}' from: ${prog_url}"
       elif [[ "$prog_bin" == "git" ]]; then
-        if [[ -n "$(uname -v | grep Ubuntu)" ]; then
+        if [[ -n "$(uname -v | grep Ubuntu)" ]]; then
           # Make sure add-apt-repository is installed.
           sudo apt-get install software-properties-common python-software-properties
           # Get up-to-date git.
