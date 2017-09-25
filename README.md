@@ -10,6 +10,8 @@ These scripts perform an installation of the IBM Cloud Developer Tools CLI envir
 - [IBM **Cloud** Dedicated](https://www.ibm.com/cloud-computing/bluemix/dedicated)
 - [IBM MicroService Builder](https://developer.ibm.com/microservice-builder/)
 
+If you run into any issues, please let us know on the [IBM Cloud Tech Slack :: #developer-tools](https://slack-invite-ibm-cloud-tech.mybluemix.net/) or file an issue on our [GitHub repo](https://github.com/IBM-Bluemix/ibm-cloud-developer-tools).
+
 
 
 ## MacOS &amp; Linux Installation
@@ -35,8 +37,6 @@ Note: In order to access these aliases, you need to either restart your terminal
 or reload your bash env (ie `. ~/.bashrc`)
 
 Access the [platform-specific readme](./linux-installer/README.md) for additional details.
-
-This script has only been tested on Ubuntu Linux systems, although it should behave properly on other distros. If you run into any issues, please let us know on [Slack](https://ibm.biz/IBMCloudNativeSlack) or file an issue on our [GitHub repo](https://github.com/ibm-cloud-tools/idt-installer).
 
 
 
