@@ -10,7 +10,7 @@
 VERSION="1.0.1"
 PROG="IBM Cloud Developer Tools - Installer"
 INSTALLER_URL="https://ibm.biz/idt-installer"
-GIT_URL="https://github.com/ibm-cloud-tools/ibm-cloud-developer"
+GIT_URL="https://github.com/IBM-Bluemix/ibm-cloud-developer-tools"
 SLACK_URL="https://slack-invite-ibm-cloud-tech.mybluemix.net/"
 DEFAULT_BMX_URL="https://clis.ng.bluemix.net/install"
 
