@@ -189,6 +189,14 @@ function install_deps {
   fi
   [[ -z "$(which brew)" ]] && USEBREW=false
 
+  # Install curl if not already installed.
+  if ! $(which curl >/dev/null 2&>1); then
+    if [ "$PLATFORM" = Linux ]; then
+      $SUDO apt-get -y update
+      $SUDO apt-get -y install curl
+    fi
+  fi
+
   for item in "${EXT_PROGS[@]}"; do
     #-- Parse array item into vars
     IFS="," read -r prog_bin prog_brew prog_url <<< "$item"
@@ -200,9 +208,13 @@ function install_deps {
         log  "You should review any setup requirements for '${prog_bin}' from: ${prog_url}"
       elif [[ "$prog_bin" == "git" ]]; then
         if [[ -n "$(which "apt-get")" ]]; then
-          # Make sure add-apt-repository is installed.
-          $SUDO apt-get install -y software-properties-common python-software-properties
           # Get up-to-date git.
+          $SUDO apt-get -y update
+
+          # Make sure add-apt-repository is installed.
+          if ! $(which add-apt-repository >/dev/null 2&>1); then
+            $SUDO apt-get install -y software-properties-common python-software-properties
+          fi
           $SUDO add-apt-repository -y ppa:git-core/ppa
           $SUDO apt-get -y update
           $SUDO apt-get -y install git
@@ -403,7 +415,11 @@ function main {
   "Darwin")
     ;;
   "Linux")
-    warn "Linux has only been tested on Ubuntu, please let us know if you use this utility on other Distros"
+    # Linux distro, e.g "Ubuntu", "RedHatEnterpriseWorkstation", "RedHatEnterpriseServer", "CentOS", "Debian"
+    DISTRO=$(lsb_release -is 2>/dev/null || echo "")
+    if [ "$DISTRO" != Ubuntu ]; then
+      warn "Linux has only been tested on Ubuntu, please let us know if you use this utility on other Distros"
+    fi
     ;;
   *)
     warn_unsupported
