@@ -365,7 +365,7 @@ function env_setup {
             ${env_file}
     fi
   ;;
-  *) error "Interal error - called with invalid parameter: ${1}";;
+  *) error "Internal error - called with invalid parameter: ${1}";;
   esac
 }
 
