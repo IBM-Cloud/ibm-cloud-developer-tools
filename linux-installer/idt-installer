@@ -109,14 +109,6 @@ function prompt {
   #-- Use $REPLY to get user's input
 }
 
-function prompt_password {
-  label=${1}
-  echo -en "${label}: ${CYN}" > /dev/tty
-  read -rs    # hide input
-  echo -e "${NRM}"  > /dev/tty
-  #-- Use $REPLY to get user's input
-}
-
 #------------------------------------------------------------------------------
 function uninstall {
   if [[ -t 0 ]]; then   #-- are we in a terminal?
