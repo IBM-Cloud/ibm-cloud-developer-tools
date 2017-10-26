@@ -14,6 +14,9 @@ GIT_URL="https://github.com/IBM-Bluemix/ibm-cloud-developer-tools"
 SLACK_URL="https://slack-invite-ibm-cloud-tech.mybluemix.net/"
 DEFAULT_BMX_URL="https://clis.ng.bluemix.net/install"
 
+# Only use sudo if not running as root:
+[ "$(id -u)" -ne 0 ] && SUDO=sudo || SUDO=""
+
 if [[ "$IDT_INSTALL_USE_PROD" != false ]]; then
   unset IDT_INSTALL_BMX_URL IDT_INSTALL_BMX_REPO_NAME IDT_INSTALL_BMX_REPO_URL
 fi
@@ -125,20 +128,20 @@ function uninstall {
     fi
   fi
   warn "Starting Uninstall..."
-  log "You may be prompted for 'sudo' password."
+  [ "$SUDO" ] && log "You may be prompted for 'sudo' password."
 
   log "Removing IBM Cloud 'bx' CLI..."
   if [[ "${PLATFORM}" == "Darwin" && "$USEBREW" == true ]]; then
     brew cask uninstall "bluemix-cli"
   fi
   #-- Run the following regardless
-  sudo rm -f  /usr/local/bin/bluemix
-  sudo rm -f  /usr/local/bin/bx
-  sudo rm -f  /usr/local/bin/bluemix-analytics
-  sudo rm -rf /usr/local/Bluemix
+  $SUDO rm -f  /usr/local/bin/bluemix
+  $SUDO rm -f  /usr/local/bin/bx
+  $SUDO rm -f  /usr/local/bin/bluemix-analytics
+  $SUDO rm -rf /usr/local/Bluemix
   #-- Taken from bluemix CLI brew uninstaller
   if [[ -f /etc/profile ]]; then
-    sudo sed -E -i ".bluemix_uninstall_bak" \
+    $SUDO sed -E -i ".bluemix_uninstall_bak" \
                       -e '/^### Added by the Bluemix CLI$/d' \
                       -e '/^source \/usr\/local\/Bluemix\/bx\/bash_autocomplete$/d' \
                       /etc/profile
@@ -165,7 +168,7 @@ function uninstall {
 #------------------------------------------------------------------------------
 function install {
   log "Starting Full Installation..."
-  log "Note: You may be prompted for your 'sudo' password during install."
+  [ "$SUDO" ] && log "Note: You may be prompted for your 'sudo' password during install."
   install_deps
   install_bx
   install_plugins
@@ -206,11 +209,11 @@ function install_deps {
       elif [[ "$prog_bin" == "git" ]]; then
         if [[ -n "$(which "apt-get")" ]]; then
           # Make sure add-apt-repository is installed.
-          sudo apt-get install software-properties-common python-software-properties
+          $SUDO apt-get install -y software-properties-common python-software-properties
           # Get up-to-date git.
-          sudo add-apt-repository -y ppa:git-core/ppa
-          sudo apt-get -y update
-          sudo apt-get -y install git
+          $SUDO add-apt-repository -y ppa:git-core/ppa
+          $SUDO apt-get -y update
+          $SUDO apt-get -y install git
           log  "Review any setup requirements for '${prog_bin}' from: ${prog_url}"
         else
           warn_unsupported
@@ -218,10 +221,14 @@ function install_deps {
       elif [[ "$prog_bin" == "docker" ]]; then
         case $PLATFORM in
          "Linux")
-           curl -fsSL get.docker.com | sudo sh -
-           # Allow docker to run as a non-root user.
-           sudo groupadd docker
-           sudo usermod -aG docker $USER
+           curl -fsSL get.docker.com | $SUDO sh -
+           if [ "$SUDO" ]; then
+             # Allow docker to run as a non-root user (if not running as root).
+             sudo groupadd docker
+             sudo usermod -aG docker $USER
+           else
+             log 'If you want to run docker without sudo run: "sudo groupadd docker && sudo usermod -aG docker $USER"'
+           fi
            log  "Review any setup requirements for '${prog_bin}' from: ${prog_url}"
            ;;
          *)
@@ -242,7 +249,7 @@ function install_deps {
           ;;
         esac
       chmod +x ./kubectl
-        sudo mv ./kubectl /usr/local/bin/kubectl
+        $SUDO mv ./kubectl /usr/local/bin/kubectl
         log  "Review any setup requirements for '${prog_bin}' from: ${prog_url}"
       elif [[ "$prog_bin" == "helm" ]]; then
         curl -fsSL https://raw.githubusercontent.com/kubernetes/helm/master/scripts/get | bash
