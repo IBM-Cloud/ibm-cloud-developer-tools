@@ -300,7 +300,7 @@ function install_bx {
 
 #------------------------------------------------------------------------------
 function install_plugins {
-  log "Installaing / updating required plugins..."
+  log "Installing / updating required plugins..."
   if [[ -z "$(bx plugin repos | grep ${IDT_INSTALL_BMX_REPO_NAME})" ]]; then
     log "Adding repo definition for: ${IDT_INSTALL_BMX_REPO_NAME} >> ${IDT_INSTALL_BMX_REPO_URL}"
     bx plugin repo-add "${IDT_INSTALL_BMX_REPO_NAME}" "${IDT_INSTALL_BMX_REPO_URL}"
