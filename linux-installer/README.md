@@ -23,6 +23,12 @@ This script performs an installation of the IBM Developer Tools CLI environment.
 
 
 ## Installation
+Before running the installation script, you should set this environment variable if you plan to deploy to Kubernetes so that the version of Helm that is installed is compatible with the Helm server version.
+
+```
+export DESIRED_VERSION=v2.4.2
+```
+
 To install the IBM Developer Tools CLI, run the following command:
 
 ```
