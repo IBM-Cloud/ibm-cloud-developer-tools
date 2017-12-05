@@ -7,7 +7,7 @@
 # Copyright (c) 2017, International Business Machines. All Rights Reserved.
 #------------------------------------------------------------------------------
 
-VERSION="1.0.1"
+VERSION="1.0.2"
 PROG="IBM Cloud Developer Tools - Installer"
 INSTALLER_URL="https://ibm.biz/idt-installer"
 GIT_URL="https://github.com/IBM-Bluemix/ibm-cloud-developer-tools"
@@ -190,7 +190,7 @@ function install_deps {
   [[ -z "$(which brew)" ]] && USEBREW=false
 
   # Install curl if not already installed.
-  if ! $(which curl >/dev/null 2&>1); then
+  if ! $(which curl >/dev/null 2>&1); then
     if [ "$PLATFORM" = Linux ]; then
       $SUDO apt-get -y update
       $SUDO apt-get -y install curl
