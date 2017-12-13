@@ -50,7 +50,7 @@ To install the IBM Cloud Developer Tools CLI on Windows 10 or newer:
 Set-ExecutionPolicy Unrestricted; iex(New-Object Net.WebClient).DownloadString('http://ibm.biz/idt-win-installer')
 ```
 
-Access the [Widnows-specific readme](./windows-installer/README.md) for additional details.
+Access the [Windows-specific readme](./windows-installer/README.md) for additional details.
 
 
 
