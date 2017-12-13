@@ -9,6 +9,13 @@ if ([Environment]::Is64BitProcess -ne [Environment]::Is64BitOperatingSystem)
     exit
 }
 
+# Check for Windows 10
+if ([System.Environment]::OSVersion.Version.Major -ne 10)
+{
+    echo "This installer requires Windows 10."
+    exit
+}
+
 # Running as admin defaults to system32 change to home directory.
 cd ~
 
