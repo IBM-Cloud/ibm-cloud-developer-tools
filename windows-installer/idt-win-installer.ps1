@@ -2,17 +2,17 @@
 # Installs IBM Developer Bluemix CLI plugin and all dependencies.
 # VERSION="0.8"
 
-# Check for 64-bit Platform - Dev and Helm do not have 32-bit versions.
-if ([Environment]::Is64BitProcess -ne [Environment]::Is64BitOperatingSystem)
-{
-    echo "This installer requires 64-bit Windows."
-    exit
-}
-
 # Check for Windows 10
 if ([System.Environment]::OSVersion.Version.Major -ne 10)
 {
     echo "This installer requires Windows 10."
+    exit
+}
+
+# Check for 64-bit Platform - Dev and Helm do not have 32-bit versions.
+if ([Environment]::Is64BitProcess -ne [Environment]::Is64BitOperatingSystem)
+{
+    echo "This installer requires 64-bit Windows."
     exit
 }
 
