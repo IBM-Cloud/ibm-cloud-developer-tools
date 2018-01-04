@@ -12,20 +12,20 @@
 
 ## Summary
 
-This settings JAR file can be imported into any of the [Jetbrains](https://www.jetbrains.com) based IDEs -- IntelliJ, WebStorm, Android Studio, etc -- that will provide a Tools menu entry to call IDT actions from within the IDE.
+This settings JAR file can be imported into any of the [Jetbrains](https://www.jetbrains.com) based IDEs -- IntelliJ, WebStorm, Android Studio, etc -- that will provide new menu entries to call IDT actions from directly within the IDE.
 
 ![IDT tools within WebStorm](./idt-jetbrains.png)
 
-Notice: This helper is provided as-is. IBM does not explicitly endorse, nor support 3rd party products. We will attempt to answer questions through our Slack channel, because we want you to succeed and be happy.
+Notice: This helper is provided "as-is". IBM does not explicitly endorse, nor support 3rd party products. Although, we will attempt to answer questions through our Slack channel, because we want you to succeed and be happy.
 
 
 ## Installation
 
 Note: You must have previously [installed](../README.md) the IBM Developer Tools CLI.
 
-1. Download the [idt-jetbrains-settings.jar](idt-jetbrains-settings.jar) file
+1. Download the [idt-jetbrains-settings.jar](https://github.com/IBM-Cloud/ibm-cloud-developer-tools/raw/master/jetbrains/idt-jetbrains-settings.jar) file
 1. Open your preferred [Jetbrains IDE](https://www.jetbrains.com)
-1. Select `File` > `Import Settings`, then locate the downloaded *idt-settings.jar* file.
+1. Select `File` > `Import Settings`, then locate and pick the downloaded *idt-jetbrains-settings.jar* file.
 
 Once complete, there will be a new "IBM Cloud Developer Tools" entry under the following menus:
 - Main "Tools" menu
