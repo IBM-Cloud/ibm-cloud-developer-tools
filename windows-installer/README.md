@@ -2,7 +2,7 @@
 
 PowerShell script that downloads and installs the IBM Cloud Developer Tools (IDT) CLI Plugin and all of its dependencies on Windows 10 or newer systems.  
 
-[![](https://img.shields.io/badge/bluemix-powered-blue.svg)](https://bluemix.net)
+[![](https://img.shields.io/badge/IBM%20Cloud-powered-blue.svg)](https://bluemix.net)
 ![Platform](https://img.shields.io/badge/platform-PowerShell-lightgrey.svg?style=flat)
 
 ## Single-line Running
