@@ -11,16 +11,16 @@ $PROG="IBM Cloud Developer Tools - Installer for Windows"
 echo "--==[ $PROG, v$VERSION ]==--"
 
 # Check for Windows 10
-if ([System.Environment]::OSVersion.Version.Major -ne 10)
+if ([System.Environment]::OSVersion.Version.Major -lt 10)
 {
-    echo "This installer requires Windows 10."
+    echo "Error: This installer requires Windows 10 or higher."
     exit
 }
 
 # Check for 64-bit Platform - Dev and Helm do not have 32-bit versions.
 if ([Environment]::Is64BitProcess -ne [Environment]::Is64BitOperatingSystem)
 {
-    echo "This installer requires 64-bit Windows."
+    echo "Error: This installer requires 64-bit Windows."
     exit
 }
 
@@ -59,7 +59,7 @@ Foreach($i in $EXT_PROGS) {
             $helm_url = "https://github.com/kubernetes/helm/releases/latest"
             $TAG = (((Invoke-WebRequest 'https://github.com/kubernetes/helm/releases/latest').Links.outerHTML | Where{$_ -match '/tag/'} | select -first 1).Split('"')[3]).Split("/")[$_.Length-1]
             if("x$TAG" -eq "x") {
-                echo "Cannot determine tag"
+                echo "Error: Cannot determine tag for helm installation"
                 return
             }
             $helm_file = "helm-$TAG-windows-amd64.tar.gz"
@@ -74,7 +74,7 @@ Foreach($i in $EXT_PROGS) {
             $newValue = $value+";C:\Program Files\helm\windows-amd64"
             Set-ItemProperty -Path $regPath -Name Path -Value $newValue | Out-Null
         } else {
-            echo "$prog_bin install not implemented"
+            echo "Warning: $prog_bin install not implemented"
         }
     }
 }
@@ -133,7 +133,7 @@ echo "$idt_batch" > C:\"Program Files"\IBM\Bluemix\bin\idt.bat
 echo "--==[ Finished ]==--"
 
 #-- Request Restart to save changes to PATH.
-$restart = Read-Host "A system restart is required. Would you like to restart now (y/n)? (default is n)"
+$restart = Read-Host "A system restart is required. Would you like to restart now (y/N)?"
 if($restart -eq "y" -Or $restart -eq "yes") {
     Restart-Computer
 }
