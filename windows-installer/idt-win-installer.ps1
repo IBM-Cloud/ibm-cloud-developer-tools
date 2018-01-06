@@ -1,6 +1,14 @@
-# idt-win-installer
-# Installs IBM Developer Bluemix CLI plugin and all dependencies.
-# VERSION="0.8"
+#------------------------------------------------------------------------------
+# Script:  idt-win-installer
+#------------------------------------------------------------------------------
+# IBM Cloud Developer Tools - CLI installer script for Windows 10 systems
+#------------------------------------------------------------------------------
+# Copyright (c) 2018, International Business Machines. All Rights Reserved.
+#------------------------------------------------------------------------------
+$VERSION="1.2.0"
+$PROG="IBM Cloud Developer Tools - Installer for Windows"
+
+echo "--==[ $PROG, v$VERSION ]==--"
 
 # Check for Windows 10
 if ([System.Environment]::OSVersion.Version.Major -ne 10)
@@ -54,75 +62,77 @@ Foreach($i in $EXT_PROGS) {
                 echo "Cannot determine tag"
                 return
             }
-            $helm_download_url = "https://storage.googleapis.com/kubernetes-helm/helm-$TAG-windows-amd64.zip"
-            Invoke-WebRequest $helm_download_url -outfile "helm-$TAG-windows-amd64.zip"
+            $helm_file = "helm-$TAG-windows-amd64.tar.gz"
+            $helm_download_url = "https://storage.googleapis.com/kubernetes-helm/$helm_file"
+            Invoke-WebRequest $helm_download_url -outfile "$helm_file"
             mkdir "C:\Program Files\helm"
-            Expand-Archive helm-$TAG-windows-amd64.zip -DestinationPath "C:\Program Files\helm"
+            Expand-Archive $helm_file -DestinationPath "C:\Program Files\helm"
+            rm $helm_file
             # Directly edit the registery to add helm to PATH. Will require a restart to stick.
             $regPath = "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment"
             $value = (Get-ItemProperty $regPath -Name Path).Path
             $newValue = $value+";C:\Program Files\helm\windows-amd64"
             Set-ItemProperty -Path $regPath -Name Path -Value $newValue | Out-Null
-            rm "helm-$TAG-windows-amd64.zip"
         } else {
             echo "$prog_bin install not implemented"
         }
     }
 }
 
-# Install Bluemix CLI.
+#-- Install Bluemix CLI.
 if( get-command bx -erroraction 'silentlycontinue') {
     echo "bx already installed"
+    C:\"Program Files"\IBM\Bluemix\bin\bx.exe --version
 } else {
     iex(New-Object Net.WebClient).DownloadString("https://clis.ng.bluemix.net/install/powershell")
     C:\"Program Files"\IBM\Bluemix\bin\bx.exe api api.ng.bluemix.net
 }
 
-# Install Bluemix CLI Plugins.
-$EXT_PLUGINS = "container-registry","container-service","dev","IBM-Containers","schematics"
-$EXT_PLUGINS = New-Object System.Collections.ArrayList(,$EXT_PLUGINS)
+#-- Install Bluemix CLI Plugins.
+$EXT_PLUGINS = "Cloud-Functions","container-registry","container-service","dev","schematics","sdk-gen"
 $pluginlist = C:\"Program Files"\IBM\Bluemix\bin\bx.exe plugin list
-# Parse bx plugin list to determine what plugins are installed already.
-for ($i=2; $i -lt $pluginlist.length; $i++) {
-    $item = $pluginlist[$i].split(" ",2)
-    if($item[0] -match "\bdev\b") {
-        echo "dev is installed"
-        $EXT_PLUGINS.remove("dev")
-    } elseif ($item[0] -match "\bcontainer-registry\b") {
-        echo "constainer-registry is installed"
-        $EXT_PLUGINS.remove("container-registry")
-    } elseif ($item[0] -match "\bcontainer-service\b") {
-        echo "container-service is installed"
-        $EXT_PLUGINS.remove("container-service")
-    } elseif ($item[0] -match "\bIBM-Containers\b") {
-        echo "IBM-Containers is installed"
-        $EXT_PLUGINS.remove("IBM-Containers")
-    } elseif ($item[0] -match "\bschematics\b") {
-        echo "schematics is installed"
-        $EXT_PLUGINS.remove("schematics")
+Foreach ($plugin in $EXT_PLUGIN) {
+    if($pluginlist -contains \b$plugin\b) {
+        echo "Updating plugin: $plugin"
+        C:\"Program Files"\IBM\Bluemix\bin\bx.exe plugin install $plugin -r Bluemix
+    } else {
+        echo "Installing plugin: $plugin"
+        C:\"Program Files"\IBM\Bluemix\bin\bx.exe plugin install $plugin -r Bluemix
     }
 }
-# Install plugins.
-if( $EXT_PLUGINS.contains("Cloud-Functions")) {
-    C:\"Program Files"\IBM\Bluemix\bin\bx.exe plugin install Cloud-Functions -r Bluemix
-}
-if( $EXT_PLUGINS.contains("container-registry")) {
-    C:\"Program Files"\IBM\Bluemix\bin\bx.exe plugin install container-registry -r Bluemix
-}
-if( $EXT_PLUGINS.contains("container-service")) {
-    C:\"Program Files"\IBM\Bluemix\bin\bx.exe plugin install container-service -r Bluemix
-}
-if( $EXT_PLUGINS.contains("schematics")) {
-    C:\"Program Files"\IBM\Bluemix\bin\bx.exe plugin install schematics -r Bluemix
-}
-if( $EXT_PLUGINS.contains("dev")) {
-    C:\"Program Files"\IBM\Bluemix\bin\bx.exe plugin install dev -r Bluemix
-}
-if( $EXT_PLUGINS.contains("sdk-gen")) {
-    C:\"Program Files"\IBM\Bluemix\bin\bx.exe plugin install sdk-gen -r Bluemix
-}
 
-# Request Restart to save changes to PATH.
+#-- Create "idt" script to act as shortcut to "bx dev"
+$idt_batch = @"
+	#-----------------------------------------------------------
+    # IBM Cloud Developer Tools (IDT), version $VERSION
+    # Wrapper for the 'bx dev' command, and external helpers.
+    #-----------------------------------------------------------
+    # Syntax:
+    #   idt                               - Run 'bx dev <args>'
+    #   idt update    [--trace] [--force] - Update IDT and deps
+    #   idt uninstall [--trace]           - Uninstall IDT
+    #-----------------------------------------------------------
+    @ECHO OFF
+    IF "%1"=="update" (
+        echo "Updating IBM Cloud Developer Tools (IDT) CLI..."
+        PowerShell.exe -ExecutionPolicy Unrestricted -Command "iex(New-Object Net.WebClient).DownloadString('http://ibm.biz/idt-win-installer')"
+    ) ELSE IF "%1"=="uninstall" (
+        echo "Uninstalling IBM Cloud Developer Tools (IDT) CLI..."
+        set /P AREYOUSURE=Are you sure you want to unbinstall IDT (Y/N)?
+        if /I %AREYOUSURE% EQ Y (
+            for /d %f in (C:\"Program Files"\IBM\Bluemix*) do rmdir /s/q "%f"
+        )
+        echo "IDT and IBM Cloud CLI have been removed."
+    ) ELSE (
+        bx dev %*
+    )
+    #-----------------------------------------------------------
+"@
+echo "$idt_batch" > C:\"Program Files"\IBM\Bluemix\bin\idt.bat
+
+echo "--==[ Finished ]==--"
+
+#-- Request Restart to save changes to PATH.
 $restart = Read-Host "A system restart is required. Would you like to restart now (y/n)? (default is n)"
 if($restart -eq "y" -Or $restart -eq "yes") {
     Restart-Computer

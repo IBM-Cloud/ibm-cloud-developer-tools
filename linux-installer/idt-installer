@@ -4,43 +4,17 @@
 #------------------------------------------------------------------------------
 # IBM Cloud Developer Tools - CLI installer script for MacOS and Linux systems
 #------------------------------------------------------------------------------
-# Copyright (c) 2017, International Business Machines. All Rights Reserved.
+# Copyright (c) 2018, International Business Machines. All Rights Reserved.
 #------------------------------------------------------------------------------
 
-VERSION="1.1.0"
+VERSION="1.2.0"
 PROG="IBM Cloud Developer Tools - Installer"
 INSTALLER_URL="https://ibm.biz/idt-installer"
 GIT_URL="https://github.com/IBM-Cloud/ibm-cloud-developer-tools"
 SLACK_URL="https://slack-invite-ibm-cloud-tech.mybluemix.net/"
-DEFAULT_BMX_URL="https://clis.ng.bluemix.net/install"
-
-# Only use sudo if not running as root:
-[ "$(id -u)" -ne 0 ] && SUDO=sudo || SUDO=""
-
-if [[ "$IDT_INSTALL_USE_PROD" != false ]]; then
-  unset IDT_INSTALL_BMX_URL IDT_INSTALL_BMX_REPO_NAME IDT_INSTALL_BMX_REPO_URL
-fi
-IDT_INSTALL_BMX_URL="${IDT_INSTALL_BMX_URL:=$DEFAULT_BMX_URL}"
-IDT_INSTALL_BMX_REPO_NAME="${IDT_INSTALL_BMX_REPO_NAME:=Bluemix}"
-IDT_INSTALL_BMX_REPO_URL="${IDT_INSTALL_BMX_REPO_URL:=https://plugins.ng.bluemix.net}"
-
-#-- External programs, format is "binary, curl, install url"
-EXT_PROGS=(
-  "git,git,https://git-scm.com/downloads"
-  "docker,docker,https://docs.docker.com/engine/installation/"
-  "kubectl,kubectl,https://kubernetes.io/docs/tasks/tools/install-kubectl/"
-  "helm,kubernetes-helm,https://github.com/kubernetes/helm/blob/master/docs/install.md"
-)
-
-#-- BX plugins to process
-PLUGINS=(
-  "Cloud-Functions"
-  "container-registry"
-  "container-service"
-  "dev"
-  "schematics"
-  "sdk-gen"
-)
+IDT_INSTALL_BMX_URL="https://clis.ng.bluemix.net/install"
+IDT_INSTALL_BMX_REPO_NAME="Bluemix"
+IDT_INSTALL_BMX_REPO_URL="https://plugins.ng.bluemix.net"
 
 #------------------------------------------------------------------------------
 function help {
@@ -49,28 +23,25 @@ function help {
   Usage: ${PROG} [<args>]
 
   Where <args> is:
-	  install             [Default] Perform full install (or update) of all needed CLIs and Plugins
+    install             [Default] Perform full install (or update) of all needed CLIs and Plugins
     uninstall           Uninstall full IBM Cloud CLI env, including 'bx', and plugins
     help | -h | -?      Show this help
-    --nobrew            Force not using 'brew' installer on MacOS
+    --force | -f        Force updates of dependencies and other settings during update
     --trace             Eanble verbose tracing of all activity
 
   If "install" (or no action provided), a full CLI installation (or update) will occur:
   1. Pre-req check for 'git', 'docker', 'kubectl', and 'helm'
   2. Install latest IBM Cloud 'bx' CLI
   3. Install all required plugins
-  4. Defines aliases to improve useability
-      - idt : Shortcut for normal "bx dev" command
-      - idt-update : Runs this installer checking for and installing any updates
-      - idt-uninstall : Uninstalls 'bx cli' and all plugins  
-
-  If "uninstall", the IBM Cloud CLI and plugins are removed from the system, including personal metadata.
-  Note: Pre-req CLIs listed above are NOT uninstalled.
+  4. Defines 'idt' shortcut to improve useability.
+      - idt           : Shortcut for normal "bx dev" command
+      - idt update    : Runs this installer checking for and installing any updates
+      - idt uninstall : Uninstalls IDT, 'bx' cli, and all plugins  
 
   Chat with us on Slack: ${SLACK_URL}, channel #developer-tools
   Submit any issues to : ${GIT_URL}/issues
 
-!!EOF
+	!!EOF
 }
 
 
@@ -122,10 +93,6 @@ function uninstall {
   warn "Starting Uninstall..."
   [ "$SUDO" ] && log "You may be prompted for 'sudo' password."
 
-  log "Removing IBM Cloud 'bx' CLI..."
-  if [[ "${PLATFORM}" == "Darwin" && "$USEBREW" == true ]]; then
-    brew cask uninstall "bluemix-cli"
-  fi
   #-- Run the following regardless
   $SUDO rm -f  /usr/local/bin/bluemix
   $SUDO rm -f  /usr/local/bin/bx
@@ -160,114 +127,151 @@ function uninstall {
 #------------------------------------------------------------------------------
 function install {
   log "Starting Full Installation..."
+
+  #-- Check if internal IBM setup
+  if [[ -n "$(which bx)" ]]; then
+    read -r repo url <<< $(bx plugin repos | grep stage1)
+    if [[ -n "$repo" ]]; then
+      echo
+      prompt "Use IBM internal '$repo' repos for install/updates (Y/n)?"
+      echo
+      if [[ "$REPLY" == [Yy]* ]]; then
+        IDT_INSTALL_BMX_URL="https://clis.stage1.ng.bluemix.net/install"
+        IDT_INSTALL_BMX_REPO_NAME="${repo}"
+        IDT_INSTALL_BMX_REPO_URL="${url}"
+      fi
+    fi
+  fi
   [ "$SUDO" ] && log "Note: You may be prompted for your 'sudo' password during install."
+
   install_deps
   install_bx
   install_plugins
   env_setup add
+
   log "Install finished."
 }
 
 #------------------------------------------------------------------------------
-function warn_unsupported {
-  warn "Only MacOS and Linux systems are supported by this installer."
-  warn "For Windows, please follow manual installation instructions at:"
-  warn "${GIT_URL}"
-  error "Unsupported platform: ${PLATFORM}"
-}
-
-#------------------------------------------------------------------------------
 function install_deps {
-  has_error=false
   #-- check for/install brew for macos
-  if [[ "$PLATFORM" == "Darwin" && "$USEBREW" != false ]]; then
+  case "$PLATFORM" in
+  "Darwin")
+    log "Checking for external dependency: brew"
     if [[ -z "$(which brew)" && -n "$(which ruby)" ]]; then
-      warn "'brew' installer not found, attempting to install..."
+      log "'brew' installer not found, attempting to install..."
       ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
       log "'brew' installation completed."
     fi
-  fi
-  [[ -z "$(which brew)" ]] && USEBREW=false
+    if [[ "$FORCE" == true ]]; then
+      log "Updating 'brew'..."
+      brew update
+    fi
 
-  # Install curl if not already installed.
-  if ! $(which curl >/dev/null 2>&1); then
-    if [ "$PLATFORM" = Linux ]; then
-      $SUDO apt-get -y update
+    #-- Xcode and Cocoapods
+    log "Checking if Xcode is installed"
+    if [[ -z "$(ls -d /Applications/Xcode*.zpp)" ]]; then
+      log "Xcode does not appear to be installed on this system."
+    fi
+    log "Installing/updating external dependency: cocoapods"
+    if [[ -z "$(gem list --local | grep "^cocoapods ")" || "$FORCE" == true ]]; then
+      $SUDO gem install cocoapods
+    fi
+
+    #-- GIT:
+    log "Installing/updating external dependency: git"
+    if [[ -z "$(which git)" ]]; then
+      brew install git
+      log "Please review any setup requirements for 'git' from: https://git-scm.com/downloads"
+    elif [[ "$FORCE" == true ]]; then
+      brew upgrade git
+    fi
+
+    #-- Docker:
+    log "Installing/updating external dependency: docker"
+    if [[ -z "$(which docker)" ]]; then
+      brew install docker
+      log  "Please review any setup requirements for 'docker' from: https://docs.docker.com/engine/installation/"
+    elif [[ "$FORCE" == true ]]; then
+      brew upgrade docker
+    fi
+
+    #-- kubectl:
+    log "Installing/updating external dependency: kubectl"
+    if [[ -z "$(which kubectl)" ]]; then
+      brew install kubectl
+      log  "Please review any setup requirements for 'kubectl' from: https://kubernetes.io/docs/tasks/tools/install-kubectl/"
+    elif [[ "$FORCE" == true ]]; then
+      brew upgrade kubectl
+    fi
+
+    #-- helm:
+    log "Installing/updating external dependency: helm"
+    if [[ -z "$(which helm)" ]]; then
+      brew install kubernetes-helm
+      log  "Please review any setup requirements for 'helm' from: https://github.com/kubernetes/helm/blob/master/docs/install.md"
+    elif [[ "$FORCE" == true ]]; then
+      brew upgrade kubernetes-helm
+    fi
+    ;;
+
+
+  "Linux")
+    log "Checking for and updating 'apt-get' support on Linux"
+    if [[ -z "$(which apt-get)" ]]; then
+      error "'apt-get' is not found.  Thats the only linux installer I know, sorry."
+    fi
+    if [[ -z "$(which add-apt-repository)" ]]; then
+      $SUDO apt-get install -y software-properties-common python-software-properties
+    fi
+    $SUDO add-apt-repository -y ppa:git-core/ppa
+    $SUDO apt-get -y update
+
+    #-- CURL:
+    log "Installing/updating external dependency: curl"
+    if [[ -z "$(which curl)" || "$FORCE" == true ]]; then
       $SUDO apt-get -y install curl
     fi
-  fi
-
-  for item in "${EXT_PROGS[@]}"; do
-    #-- Parse array item into vars
-    IFS="," read -r prog_bin prog_brew prog_url <<< "$item"
-    log "Checking for external dependency: ${prog_bin}"
-    if [[ -z "$(which "$prog_bin")" ]]; then
-      log "${prog_bin} not found, attempting to install..."
-      if [[ "$PLATFORM" == "Darwin" && "$USEBREW" == true ]]; then
-        brew install "$prog_brew"
-        log  "You should review any setup requirements for '${prog_bin}' from: ${prog_url}"
-      elif [[ "$prog_bin" == "git" ]]; then
-        if [[ -n "$(which "apt-get")" ]]; then
-          # Get up-to-date git.
-          $SUDO apt-get -y update
-
-          # Make sure add-apt-repository is installed.
-          if ! $(which add-apt-repository >/dev/null 2&>1); then
-            $SUDO apt-get install -y software-properties-common python-software-properties
-          fi
-          $SUDO add-apt-repository -y ppa:git-core/ppa
-          $SUDO apt-get -y update
-          $SUDO apt-get -y install git
-          log  "Review any setup requirements for '${prog_bin}' from: ${prog_url}"
-        else
-          warn_unsupported
-        fi
-      elif [[ "$prog_bin" == "docker" ]]; then
-        case $PLATFORM in
-         "Linux")
-           curl -fsSL get.docker.com | $SUDO sh -
-           if [ "$SUDO" ]; then
-             # Allow docker to run as a non-root user (if not running as root).
-             sudo groupadd docker
-             sudo usermod -aG docker $USER
-           else
-             log 'If you want to run docker without sudo run: "sudo groupadd docker && sudo usermod -aG docker $USER"'
-           fi
-           log  "Review any setup requirements for '${prog_bin}' from: ${prog_url}"
-           ;;
-         *)
-           warn_unsupported
-          ;;
-        esac
-        log  "Review any setup requirements for '${prog_bin}' from: ${prog_url}"
-      elif [[ "$prog_bin" == "kubectl" ]]; then
-        case $PLATFORM in
-        "Linux")
-          curl --progress-bar -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl
-          ;;
-        "Darwin")
-          curl --progress-bar -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/darwin/amd64/kubectl
-          ;;
-        *)
-          warn_unsupported
-          ;;
-        esac
-      chmod +x ./kubectl
-        $SUDO mv ./kubectl /usr/local/bin/kubectl
-        log  "Review any setup requirements for '${prog_bin}' from: ${prog_url}"
-      elif [[ "$prog_bin" == "helm" ]]; then
-        curl -fsSL https://raw.githubusercontent.com/kubernetes/helm/master/scripts/get | bash
-        log  "Review any setup requirements for '${prog_bin}' from: ${prog_url}"
-      else
-        warn "Unable to automatically install '${prog_bin}'"
-        log  "You must manually install '${prog_bin}' from: ${prog_url}"
-        has_error=true
-      fi
+    #-- GIT:
+    log "Installing/updating external dependency: git"
+    if [[ -z "$(which git)" || "$FORCE" == true ]]; then
+      $SUDO apt-get -y install git
+      log  "Please review any setup requirements for 'git' from: https://git-scm.com/downloads"
     fi
-  done
-  if [[ "$has_error" == true ]]; then
-    error "One or more prereqs are missing. You must install these prior to using re-running this utility"
-  fi
+
+    #-- Docker:
+    log "Installing/updating external dependency: docker"
+    if [[ -z "$(which docker)" || "$FORCE" == true ]]; then
+      curl -fsSL get.docker.com | $SUDO sh -
+      if [ "$SUDO" ]; then
+        # Allow docker to run as a non-root user (if not running as root).
+        sudo groupadd docker 2>/dev/null
+        sudo usermod -aG docker $USER  2>/dev/null
+      else
+        log 'If you want to run docker without sudo run: "sudo groupadd docker && sudo usermod -aG docker $USER"'
+      fi
+      log  "Please review any setup requirements for 'docker' from: https://docs.docker.com/engine/installation/"
+    fi
+
+    #-- kubectl:
+    log "Installing/updating external dependency: kubectl"
+    if [[ -z "$(which kubectl)" || "$FORCE" == true ]]; then
+      curl --progress-bar -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl
+      $SUDO mv ./kubectl /usr/local/bin/kubectl
+      $SUDO chmod +x /usr/local/bin/kubectl
+      log  "Please review any setup requirements for 'kubsctl' from: https://kubernetes.io/docs/tasks/tools/install-kubectl/"
+    fi
+
+    #-- helm:
+    log "Installing/updating external dependency: helm"
+    if [[ -z "$(which helm)" || "$FORCE" == true ]]; then
+      curl -fsSL https://raw.githubusercontent.com/kubernetes/helm/master/scripts/get | bash
+      log  "Please review any setup requirements for 'helm' from: https://github.com/kubernetes/helm/blob/master/docs/install.md"
+    fi
+
+    ;;
+  esac
+
 }
 
 #------------------------------------------------------------------------------
@@ -276,13 +280,8 @@ function install_bx {
     log "Installing IBM Cloud 'bx' CLI for platform '${PLATFORM}'..."
     case "$PLATFORM" in
     "Darwin")
-      #-- Only use BREW if using default bluemix URL (not an internal url)
-      if [[ "$USEBREW" == true && "$IDT_INSTALL_BMX_REPO_NAME" == "Bluemix" ]]; then
-        brew cask reinstall "caskroom/cask/bluemix-cli"
-      else
-        log "Downloading and installing IBM Cloud 'bx' CLI from: ${IDT_INSTALL_BMX_URL}/osx"
-        sh <(curl -fsSL ${IDT_INSTALL_BMX_URL}/osx)
-      fi
+      log "Downloading and installing IBM Cloud 'bx' CLI from: ${IDT_INSTALL_BMX_URL}/osx"
+      sh <(curl -fsSL ${IDT_INSTALL_BMX_URL}/osx)
       ;;
     "Linux")
       log "Downloading and installing IBM Cloud 'bx' CLI from: ${IDT_INSTALL_BMX_URL}/linux"
@@ -300,11 +299,17 @@ function install_bx {
 
 #------------------------------------------------------------------------------
 function install_plugins {
+  #-- BX plugins to process
+  PLUGINS=(
+    "Cloud-Functions"
+    "container-registry"
+    "container-service"
+    "dev"
+    "schematics"
+    "sdk-gen"
+  )
+
   log "Installing / updating required plugins..."
-  if [[ -z "$(bx plugin repos | grep ${IDT_INSTALL_BMX_REPO_NAME})" ]]; then
-    log "Adding repo definition for: ${IDT_INSTALL_BMX_REPO_NAME} >> ${IDT_INSTALL_BMX_REPO_URL}"
-    bx plugin repo-add "${IDT_INSTALL_BMX_REPO_NAME}" "${IDT_INSTALL_BMX_REPO_URL}"
-  fi
   for plugin in "${PLUGINS[@]}"; do
     log "Checking status of plugin: ${plugin}"
     read -r p ver <<< "$(bx plugin list | grep "^${plugin} ")"
@@ -323,61 +328,64 @@ function install_plugins {
 
 #------------------------------------------------------------------------------
 function env_setup {
+  idt_prog="/usr/local/bin/idt"
   env_file=""
-  show_warn=false
+
   if   [[ -f ~/.bashrc ]]      ; then env_file=~/.bashrc
   elif [[ -f ~/.bash_profile ]]; then env_file=~/.bash_profile
   elif [[ -f ~/.profile ]]     ; then env_file=~/.profile
-  else
-    env_file=~/.bashrc
-    warn "Creating new '${env_file}' file to contain aliases"
-    touch "${env_file}" || error "Failed to create '${env_file}' file!"
   fi
-  case "$1" in
-  "add")
-    if [[ -z "$(grep 'alias idt="bx dev"' "$env_file")" ]]; then
-      log "Adding 'idt' aliases to: ${env_file}"
-      cp -f "$env_file" "$env_file".idt_install_bak || error "Add - Failed to backup file: ${env_file}"
-      echo '#-- Added by the IDT Installer' >> "$env_file"
-      echo 'alias idt="bx dev"'             >> "$env_file"
-      if [[ "$PLATFORM" == "Darwin" && "$USEBREW" == false ]]; then
-        echo 'alias idt-update="curl -sL' "$INSTALLER_URL" '| bash -s -- --nobrew"' >> "$env_file"
-        echo 'alias idt-uninstall="curl -sL' "$INSTALLER_URL" '| bash -s -- --nobrew uninstall"' >> "$env_file"
-      else
-        echo 'alias idt-update="curl -sL' "$INSTALLER_URL" '| bash"' >> "$env_file"
-        echo 'alias idt-uninstall="curl -sL' "$INSTALLER_URL" '| bash -s uninstall"' >> "$env_file"
-      fi
-      show_warn=true
-    else
-      log "'idt' aliases are already defined in: ${env_file}"
+
+  #-- Clear up any old aliases
+  if [[ -n "$(grep 'alias idt="bx dev"' "$env_file")" ]]; then
+    log "Removing old 'idt' aliases from: ${env_file}"
+    sed -E -i ".idt_uninstall_bak" \
+          -e '/^#-- Added by the IDT Installer$/d' \
+          -e '/^alias idt=\"bx dev\"$/d' \
+          -e '/^alias idt-update=/d' \
+          -e '/^alias idt-uninstall=/d' \
+          ${env_file}
+  fi
+
+  if [[ "$1" == "add" ]]; then    
+    if [[ ! -f "$idt_prog" || "$FORCE" == true ]]; then
+      cat <<-!!EOF > ~/idt
+				#!/bin/bash
+				#-----------------------------------------------------------
+				# IBM Cloud Developer Tools (IDT), version ${VERSION}
+				# Wrapper for the 'bx dev' command, and external helpers.
+				#-----------------------------------------------------------
+				# Syntax:
+				#   idt                               - Run 'bx dev <args>'
+				#   idt update    [--trace] [--force] - Update IDT and deps
+				#   idt uninstall [--trace]           - Uninstall IDT
+				#-----------------------------------------------------------
+				case "\$1" in
+				"update")
+				  echo "Updating IBM Cloud Developer Tools (IDT) CLI..."
+				  curl -sL $INSTALLER_URL | bash -s -- \$*
+				  ;;
+				"uninstall")
+				  echo "Uninstalling IBM Cloud Developer Tools (IDT) CLI..."
+				  curl -sL $INSTALLER_URL | bash -s -- uninstall \$*
+				  ;;
+				*)
+				  bx dev \$*
+				esac
+				#-----------------------------------------------------------
+			!!EOF
+      $SUDO mv ~/idt $idt_prog
+      $SUDO chmod 755 $idt_prog
+      log "The following shortcuts defined to access the IBM Cloud Developer Tools CLI:"
+      log "  ${GRN}idt${NRM}           : Main command, shorthand for '${CYN}bx dev${NRM}'"
+      log "  ${GRN}idt update${NRM}    : Update your IBM Cloud Developer Tools to the latest version"
+      log "  ${GRN}idt uninstall${NRM} : Uninstall the IBM Cloud Developer Tools"
     fi
-    if [[ -f ~/.bash_profile && -z "$(grep '.bashrc' ~/.bash_profile)" ]]; then
-      log "Adding '~/.bashrc' loader into '~/.bash_profile'"
-      echo "# Load .bashrc settings"              >> ~/.bash_profile
-      echo "[ -f ~/.bashrc ] && source ~/.bashrc" >> ~/.bash_profile
-    fi
-    log "The following aliases are defined to access the IBM Cloud Developer Tools CLI:"
-    log "  ${GRN}idt${NRM}           : Main command line. Shorthand for standard '${CYN}bx dev${NRM}' command"
-    log "  ${GRN}idt-update${NRM}    : Update your IBM Cloud Developer Tools to the latest version"
-    log "  ${GRN}idt-uninstall${NRM} : Uninstall the IBM Cloud Developer Tools"
-    if [[ "$show_warn" == true ]]; then
-      warn "To access the aliases above, you need to either restart your terminal session,"
-      warn "or reload your bash env (ie '. ${env_file}')"
-    fi
-  ;;
-  "remove")
-    if [[ -n "$(grep 'alias idt="bx dev"' "$env_file")" ]]; then
-      log "Removing 'idt' aliases from: ${env_file}"
-      sed -E -i ".idt_uninstall_bak" \
-            -e '/^#-- Added by the IDT Installer$/d' \
-            -e '/^alias idt=\"bx dev\"$/d' \
-            -e '/^alias idt-update=/d' \
-            -e '/^alias idt-uninstall=/d' \
-            ${env_file}
-    fi
-  ;;
-  *) error "Internal error - called with invalid parameter: ${1}";;
-  esac
+  elif [[ "$1" == "remove" ]]; then
+    $SUDO rm -f $idt_prog
+  else
+    error "Internal error - called with invalid parameter: ${1}"
+  fi
 }
 
 #------------------------------------------------------------------------------
@@ -390,7 +398,9 @@ function main {
   TMPDIR=${TMPDIR:-"/tmp"}
   PLATFORM=$(uname)
   ACTION=""
-  USEBREW=true
+
+  # Only use sudo if not running as root:
+  [ "$(id -u)" -ne 0 ] && SUDO=sudo || SUDO=""
 
   #-- Parse args
   while [[ $# -gt 0 ]]; do
@@ -399,10 +409,9 @@ function main {
       warn "Enabling verbose tracing of all activity"
       set -x
       ;;
-    "--nobrew")
-      USEBREW=false;
-      warn "Disabling the use of 'brew' for MacOS packages"
-      log  "Note: Ensure you are consistent with this option when installing / updating / uninstalling"
+    "--force" | "-f")
+      FORCE=true
+      warn "Forcing updates for all dependencies and other settings"
       ;;
     "install")    ACTION="install";;
     "uninstall")  ACTION="uninstall";;
@@ -422,7 +431,10 @@ function main {
     fi
     ;;
   *)
-    warn_unsupported
+    warn "Only MacOS and Linux systems are supported by this installer."
+    warn "For Windows, please follow manual installation instructions at:"
+    warn "${GIT_URL}"
+    error "Unsupported platform: ${PLATFORM}"
     ;;
   esac
 
