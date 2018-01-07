@@ -50,21 +50,30 @@ function help {
 
 #------------------------------------------------------------------------------
 function log() {
-  Write-Host "[" $((Get-PSCallStack)[1].Command) "]" -foreground cyan
-  Write-Host " " $args
+  Write-Host "[$((Get-PSCallStack)[1].Command)] " -foreground cyan  -nonewline
+  Write-Host $args
 }
 
 function warn() {
-  Write-Host "[" $((Get-PSCallStack)[1].Command) "]" -foreground cyan
-  Write-Host "WARN" -foreground yellow
-  Write-Host ": " $args
+  Write-Host "[$((Get-PSCallStack)[1].Command)] " -foreground cyan  -nonewline
+  Write-Host "WARN" -foreground yellow  -nonewline
+  Write-Host ": $args"
 }
 
 function error() {
-  Write-Host "[" $((Get-PSCallStack)[1].Command) "]" -foreground cyan
-  Write-Host "ERROR" -foreground red
-  Write-Host ": " $args
-  exit -1
+  Write-Host "[$((Get-PSCallStack)[1].Command)] " -foreground cyan  -nonewline
+  Write-Host "ERROR" -foreground red  -nonewline
+  Write-Host ": $args"
+  quit
+}
+
+function quit() {
+   # If running in the console, wait for input before closing.
+   if ($Host.Name -eq "ConsoleHost") { 
+    Write-Host "Press any key to continue..."
+    $Host.UI.RawUI.FlushInputBuffer()   # Make sure buffered input doesn't "press a key" and skip the ReadKey().
+    $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyUp") > $null
+  }
 }
 
 #------------------------------------------------------------------------------
@@ -75,7 +84,7 @@ function uninstall() {
 
 #------------------------------------------------------------------------------
 function install() {
-  log "Starting Full Installation..."
+  log "Starting Installation/Update..."
 
   #-- Check if internal IBM setup
   if( get-command bx -erroraction 'silentlycontinue' ) {
@@ -88,9 +97,9 @@ function install() {
         $IDT_INSTALL_BMX_URL="https://clis.stage1.ng.bluemix.net/install"
         $IDT_INSTALL_BMX_REPO_NAME="stage1"
         $IDT_INSTALL_BMX_REPO_URL="https://plugins.stage1.ng.bluemix.net"
-      fi
-    fi
-  fi
+      }
+    }
+  }
 
   install_deps
   install_bx
@@ -115,7 +124,7 @@ function install_deps() {
 
   #-- git
   log "Checking for external dependency: git"
-  if( ! get-command git -erroraction 'silentlycontinue' -or $FORCE -eq 1) {
+  if( -not (get-command git -erroraction 'silentlycontinue') -or $FORCE -eq 1) {
     log "Installing/updating external dependency: git"
     $gitVersion = (Invoke-WebRequest "https://git-scm.com/downloads/latest" -UseBasicParsing).Content
     Invoke-WebRequest "https://github.com/git-for-windows/git/releases/download/v$gitVersion.windows.1/Git-$gitVersion-64-bit.exe" -UseBasicParsing -outfile "git-installer.exe"
@@ -127,7 +136,7 @@ function install_deps() {
 
   #-- docker
   log "Checking for external dependency: docker"
-  if( ! get-command docker -erroraction 'silentlycontinue' -or $FORCE -eq 1) {
+  if( -not(get-command docker -erroraction 'silentlycontinue') -or $FORCE -eq 1) {
     log "Installing/updating external dependency: docker"
     Invoke-WebRequest "https://download.docker.com/win/stable/InstallDocker.msi" -UseBasicParsing -outfile "InstallDocker.msi"
     msiexec /i InstallDocker.msi /passive | Out-Null
@@ -137,7 +146,7 @@ function install_deps() {
 
   #-- kubectl
   log "Checking for external dependency: kubectl"
-  if( ! get-command kubectl -erroraction 'silentlycontinue' -or $FORCE -eq 1) {
+  if( -not( get-command kubectl -erroraction 'silentlycontinue') -or $FORCE -eq 1) {
     log "Installing/updating external dependency: kubectl"
     $kube_version = (Invoke-WebRequest "https://storage.googleapis.com/kubernetes-release/release/stable.txt" -UseBasicParsing).Content
     $kube_version = $kube_version -replace "`n|`r"
@@ -155,7 +164,7 @@ function install_deps() {
 
   #-- helm
   log "Checking for external dependency: helm"
-  if( ! get-command helm -erroraction 'silentlycontinue' -or $FORCE -eq 1) {
+  if( -not (get-command helm -erroraction 'silentlycontinue') -or $FORCE -eq 1) {
     log "Installing/updating external dependency: helm"
     $helm_url = ((Invoke-WebRequest https://github.com/kubernetes/helm -UseBasicParsing).Links.OuterHTML | Where-Object{$_ -match 'windows-amd64.tar.gz'} | Select-Object -first 1).Split('"')[1]
     Write-Output "Helm URL : $helm_url"
@@ -238,13 +247,13 @@ REM #   idt uninstall [--trace]           - Uninstall IDT
 REM #-----------------------------------------------------------
 IF "%1"=="update" (
   echo Updating IBM Cloud Developer Tools CLI...
-  PowerShell -NoProfile -ExecutionPolicy Unrestricted -Command "& {Start-Process PowerShell -ArgumentList '-NoProfile -ExecutionPolicy Unrestricted """"iex(New-Object Net.WebClient).DownloadString('http://ibm.biz/idt-win-installer')"""" """"update"""" """"%2"""" ' -Verb RunAs}"
+  PowerShell -NoProfile -ExecutionPolicy Unrestricted -Command "& {Start-Process PowerShell -ArgumentList '-NoProfile -ExecutionPolicy Unrestricted ""iex(New-Object Net.WebClient).DownloadString(""""http://ibm.biz/idt-win-installer"""")"" ""%2"" ""%3"" ' -Verb RunAs}"
 ) ELSE IF "%1"=="uninstall" (
   echo Uninstalling IBM Cloud Developer Tools CLI...
-  PowerShell -NoProfile -ExecutionPolicy Unrestricted -Command "& {Start-Process PowerShell -ArgumentList '-NoProfile -ExecutionPolicy Unrestricted """"iex(New-Object Net.WebClient).DownloadString('http://ibm.biz/idt-win-installer')"""" """"uninstall"""" """"%2"""" ' -Verb RunAs}"
+  PowerShell -NoProfile -ExecutionPolicy Unrestricted -Command "& {Start-Process PowerShell -ArgumentList '-NoProfile -ExecutionPolicy Unrestricted ""iex(New-Object Net.WebClient).DownloadString(""""http://ibm.biz/idt-win-installer"""")"" ""uninstall"" ""%2"" ' -Verb RunAs}"
   echo IDT and IBM Cloud CLI have been removed.
 ) ELSE (
-  C:\"Program Files"\IBM\Bluemix\bin\bx.exe dev %*
+  bx dev %*
 )
 REM #-----------------------------------------------------------
 "@
@@ -289,9 +298,7 @@ function main {
         $FORCE=1
         warn "Forcing updates for all dependencies and other settings"
       }
-      "install"   { $ACTION = "install" }
       "uninstall" { $ACTION = "uninstall" }
-      default     { $ACTION = "help" }
     }
   }
 
@@ -302,7 +309,9 @@ function main {
   }
 
   $secs = (Get-Date)-$secs
-  log "--==[ Finished. Total time: $secs seconds ]==--"
+  log "--==[ Finished. Total time: $($secs.ToString("hh\:mm\:ss")) seconds ]==--"
+
+  quit
 }
 
 #------------------------------------------------------------------------------
