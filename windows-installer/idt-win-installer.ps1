@@ -25,7 +25,7 @@ if ([Environment]::Is64BitProcess -ne [Environment]::Is64BitOperatingSystem)
 }
 
 # Running as admin defaults to system32 change to home directory.
-cd ~
+Set-Location ~
 
 
 # Install dependencies - git, docker, kubectl, helm.
@@ -46,7 +46,7 @@ Foreach($i in $EXT_PROGS) {
             $gitVersion = (Invoke-WebRequest "https://git-scm.com/downloads/latest" -UseBasicParsing).Content
             Invoke-WebRequest "https://github.com/git-for-windows/git/releases/download/v$gitVersion.windows.1/Git-$gitVersion-64-bit.exe" -UseBasicParsing -outfile "git-installer.exe"
             .\git-installer.exe /SILENT /PathOption="Cmd" | Out-Null
-            rm "git-installer.exe"
+            Remove-Item "git-installer.exe"
         } elseif ($prog_bin -eq "docker") {
             Invoke-WebRequest "https://download.docker.com/win/stable/InstallDocker.msi" -UseBasicParsing -outfile "InstallDocker.msi"
             msiexec /i InstallDocker.msi /passive | Out-Null
@@ -62,7 +62,7 @@ Foreach($i in $EXT_PROGS) {
             $newValue = $value+";C:\Program Files\kubectl"
             Set-ItemProperty -Path $regPath -Name Path -Value $newValue | Out-Null
         } elseif ($prog_bin -eq "helm") {
-            $helm_url = ((Invoke-WebRequest https://github.com/kubernetes/helm -UseBasicParsing).Links.OuterHTML | Where{$_ -match 'windows-amd64.tar.gz'} | select -first 1).Split('"')[1]
+            $helm_url = ((Invoke-WebRequest https://github.com/kubernetes/helm -UseBasicParsing).Links.OuterHTML | Where-Object{$_ -match 'windows-amd64.tar.gz'} | Select-Object -first 1).Split('"')[1]
             Write-Output "Helm URL : $helm_url"
             $helm_file = $helm_url.Split("/")[$_.Length-1]
             Write-Output "Helm File: $helm_file"
@@ -74,7 +74,7 @@ Foreach($i in $EXT_PROGS) {
             Expand-7Zip $helm_file .
             $tar = $helm_file.Replace('.gz','')
             Expand-7Zip $tar "C:\Program Files\helm"
-            rm $helm_file $tar
+            Remove-Item $helm_file $tar
             # Directly edit the registery to add helm to PATH. Will require a restart to stick.
             $regPath = "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment"
             $value = (Get-ItemProperty $regPath -Name Path).Path
@@ -92,7 +92,7 @@ if( get-command bx -erroraction 'silentlycontinue') {
     Write-Output "bx already installed"
     C:\"Program Files"\IBM\Bluemix\bin\bx.exe update
 } else {
-    iex(New-Object Net.WebClient).DownloadString("https://clis.ng.bluemix.net/install/powershell")
+    Invoke-Expression(New-Object Net.WebClient).DownloadString("https://clis.ng.bluemix.net/install/powershell")
     C:\"Program Files"\IBM\Bluemix\bin\bx.exe api api.ng.bluemix.net
     reboot = 1
 }
@@ -143,7 +143,7 @@ REM         for /d %f in (C:\"Program Files"\IBM\Bluemix*) do rmdir /s/q "%f"
 REM )
     echo IDT and IBM Cloud CLI have been removed.
 ) ELSE (
-    bx dev %*
+    C:\"Program Files"\IBM\Bluemix\bin\bx.exe dev %*
 )
 REM #-----------------------------------------------------------
 "@
