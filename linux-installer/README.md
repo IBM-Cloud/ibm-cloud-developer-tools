@@ -1,4 +1,4 @@
-# IBM Developer Tools CLI Installer (idt-installer)
+# IBM Developer Tools CLI Installer (idt-installer) for Linux and MacOS
 
 [![](https://img.shields.io/badge/IBM%20Cloud-powered-blue.svg)](https://bluemix.net)
 ![Platform](https://img.shields.io/badge/platform-BASH-lightgrey.svg?style=flat)
@@ -43,7 +43,7 @@ Once complete, there will be three added shortcuts defined to access the IDT:
 
 ### Debugging
 
-If you have any issues with the instaler, try running with the `--trace` argument which will produce verbose output to assist us in diagnosing your problem:
+If you have any issues with the installer, try running with the `--trace` argument which will produce verbose output to assist us in diagnosing your problem:
 
 ```
 curl -sL https://ibm.biz/idt-installer | bash -s -- --trace
@@ -57,7 +57,7 @@ idt update --trace
 
 ## Updating
 
-If you wish to update the IBM Developer Tools CLI, run `idt update`. There is also a `--force` (or `-f`) argument that will force update to all dependencies too.
+If you wish to update the IBM Developer Tools CLI, run `idt update`. There is also a `--force` argument that will force update to all dependencies too.
 
 This command is simply an alias defined during initial install that runs the installer shown here:
 
@@ -70,7 +70,7 @@ $ curl -sL https://ibm.biz/idt-installer | bash -c -- [--force]
 If you wish to remove the IBM Developer Tools CLI, run `idt uninstall`. This command is simply an alias defined during install that runs the following:
 
 ```
-$ curl -sL https://ibm.biz/idt-installer | bash -s uninstall
+$ curl -sL https://ibm.biz/idt-installer | bash -c -- uninstall
 ```
 
 
@@ -91,7 +91,7 @@ Where <args> is:
     install             [Default] Perform full install (or update) of all needed CLIs and Plugins
     uninstall           Uninstall full IBM Cloud CLI env, including 'bx', and plugins
     help | -h | -?      Show this help
-    --force | -f        Force updates of dependencies and other settings during update
+    --force             Force updates of dependencies and other settings during update
     --trace             Eanble verbose tracing of all activity
 
 

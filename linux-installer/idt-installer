@@ -8,7 +8,7 @@
 #------------------------------------------------------------------------------
 
 VERSION="1.2.0"
-PROG="IBM Cloud Developer Tools - Installer"
+PROG="IBM Cloud Developer Tools for Linux/MacOS - Installer"
 INSTALLER_URL="https://ibm.biz/idt-installer"
 GIT_URL="https://github.com/IBM-Cloud/ibm-cloud-developer-tools"
 SLACK_URL="https://slack-invite-ibm-cloud-tech.mybluemix.net/"
@@ -20,14 +20,15 @@ IDT_INSTALL_BMX_REPO_URL="https://plugins.ng.bluemix.net"
 function help {
   cat <<-!!EOF
 
-  Usage: ${PROG} [<args>]
+  ${PROG}
+  Usage: idt-installer [<args>]
 
   Where <args> is:
-    install             [Default] Perform full install (or update) of all needed CLIs and Plugins
-    uninstall           Uninstall full IBM Cloud CLI env, including 'bx', and plugins
-    help | -h | -?      Show this help
-    --force | -f        Force updates of dependencies and other settings during update
-    --trace             Eanble verbose tracing of all activity
+    install          [Default] Perform full install (or update) of all needed CLIs and Plugins
+    uninstall        Uninstall full IBM Cloud CLI env, including 'bx', and plugins
+    help | -h | -?   Show this help
+    --force          Force updates of dependencies and other settings during update
+    --trace          Eanble verbose tracing of all activity
 
   If "install" (or no action provided), a full CLI installation (or update) will occur:
   1. Pre-req check for 'git', 'docker', 'kubectl', and 'helm'
@@ -309,7 +310,7 @@ function install_plugins {
     "sdk-gen"
   )
 
-  log "Installing / updating required plugins..."
+  log "Installing/updating IBM Cloud CLI plugins used by IDT..."
   for plugin in "${PLUGINS[@]}"; do
     log "Checking status of plugin: ${plugin}"
     read -r p ver <<< "$(bx plugin list | grep "^${plugin} ")"
@@ -317,7 +318,7 @@ function install_plugins {
       log "Installing plugin '$plugin'"
       bx plugin install -r "${IDT_INSTALL_BMX_REPO_NAME}" "$plugin"
     else
-      log "Attempting to update plugin '$plugin' from version '$ver'"
+      log "Updating plugin '$plugin' from version '$ver'"
       bx plugin update -r "${IDT_INSTALL_BMX_REPO_NAME}" "$plugin"
     fi
   done
@@ -409,7 +410,7 @@ function main {
       warn "Enabling verbose tracing of all activity"
       set -x
       ;;
-    "--force" | "-f")
+    "--force")
       FORCE=true
       warn "Forcing updates for all dependencies and other settings"
       ;;
