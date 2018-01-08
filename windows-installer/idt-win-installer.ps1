@@ -26,13 +26,13 @@ function help {
   Usage: idt-win-installer [<args>]
 
   Where <args> is:
-    install           [Default] Perform full install (or update) of all needed CLIs and Plugins
-    uninstall         Uninstall full IBM Cloud CLI env, including 'bx', and plugins
-    help              Show this help
-    --force | -f      Force updates of dependencies and other settings during update
-    --trace           Eanble verbose tracing of all activity
+    install | update   [Default] Perform install (or update) of all needed CLIs and Plugins
+    uninstall          Uninstall full IBM Cloud CLI env, including 'bx', and plugins
+    help               Show this help
+    --force | -f       Force updates of dependencies and other settings during update
+    --trace            Eanble verbose tracing of all activity
 
-  If "install" (or no action provided), a full CLI installation (or update) will occur:
+  If "install", "update", or no action, a full CLI installation (or update) will occur:
   1. Pre-req check for 'git', 'docker', 'kubectl', and 'helm'
   2. Install latest IBM Cloud 'bx' CLI
   3. Install all required plugins
@@ -79,7 +79,18 @@ function quit() {
 #------------------------------------------------------------------------------
 function uninstall() {
   warn "Starting Uninstall..."
-
+  Write-Output
+  $reply = Read-Host -Prompt "Are you sure you want to remove IDT and IBM Cloud CLI (Y/n)?"
+  Write-Output
+  if($reply -match "[Yy]*") {
+    log "Deleting: C:\Program Files\IBM\Bluemix"
+    Remove-Item -Recurse -Force "C:\Program Files\IBM\Bluemix"
+    log "Deleting: ~/.bluemix"
+    Remove-Item -Recurse -Force ~/.bluemix
+    log "Uninstall complete."
+  } else {
+    log "Uninstall cancelled at user request"
+  }
 }
 
 #------------------------------------------------------------------------------
@@ -298,7 +309,10 @@ function main {
         $FORCE=1
         warn "Forcing updates for all dependencies and other settings"
       }
+      "update"    { $ACTION = "install" }
+      "install"   { $ACTION = "install" }
       "uninstall" { $ACTION = "uninstall" }
+      default     { $ACTION = "help" }
     }
   }
 

@@ -10,10 +10,6 @@
 * [Uninstall](#uninstall)
 * [Pre-Requisites](#pre-requisites)
 * [Usage](#usage)
-* [Platform specific concerns](#platforms)
-    * [MacOS](#macos)
-    * [Linux](#linux)
-    * [Windows](#windows)
 * [Internal IBM users](#internal-ibm-users)
 
 
@@ -25,6 +21,7 @@ PowerShell script that downloads and installs the IBM Cloud Developer Tools (IDT
 ## Installation
 
 ### Single-line Running
+This action will install (or update) the IBM Cloud Developer Toolsto your windows system in a single command.
 
 1. Open Windows PowerShell by right-clicking and select "Run as Administrator".
 2. Run this command:
@@ -32,7 +29,14 @@ PowerShell script that downloads and installs the IBM Cloud Developer Tools (IDT
 Set-ExecutionPolicy Unrestricted; iex(New-Object Net.WebClient).DownloadString('http://ibm.biz/idt-win-installer')
 ```
 
+Once the installation has completed, and you have rebooted your system (as needed), there will be three added shortcuts defined to access the IDT:
+- `idt` : Main command line tool for IBM cloud native development (shortcut to 'bx dev' command)
+- `idt update` : Update your IDT environment to the latest versions
+- `idt uninstall` : Uninstall the IBM Developer Tools
+
+
 ### Running from Download
+Alternatively, you can use the following approach to perform an installation. This will give you an opportunity to better inspect the activities performed, especially if you are having any issues during installation (shown below).
 
 1. Download the `idt-win-installer.ps1` file, or clone this repository.
 2. Open Windows PowerShell by right-clicking and selecting "Run as administrator".
@@ -42,12 +46,6 @@ Set-ExecutionPolicy Unrestricted; iex(New-Object Net.WebClient).DownloadString('
 Set-ExecutionPolicy Unrestricted
 .\idt-win-installer.ps1
 ```
-
-Once completed, and you have rebooted your system (as needed), there will be three added shortcuts defined to access the IDT:
-- `idt` : Main command line tool for IBM cloud native development (shortcut to 'bx dev' command)
-- `idt update` : Update your IDT environment to the latest versions
-- `idt uninstall` : Uninstall the IBM Developer Tools
-
 
 ### Debugging
 
@@ -66,20 +64,32 @@ idt update --trace
 
 ## Updating
 
-If you wish to update the IBM Developer Tools CLI, run `idt update`. There is also a `--force` argument that will force update to all dependencies too.
-
-This command is simply an alias defined during initial install that runs the installer (in admin mode) as shown here:
+If you wish to update the IBM Developer Tools CLI, run:
 
 ```
-PowerShell -NoProfile -ExecutionPolicy Unrestricted -Command "& {Start-Process PowerShell -ArgumentList '-NoProfile -ExecutionPolicy Unrestricted """"iex(New-Object Net.WebClient).DownloadString('http://ibm.biz/idt-win-installer')"""" """"update"""" """"%2"""" ' -Verb RunAs}"
+idt update [--force] [--trace]
+```
+
+The `--force` argument that will force update to all dependencies too.
+
+This command is simply a shortcut defined during initial install that runs (in admin mode) the installer as shown here:
+
+```
+PowerShell -NoProfile -ExecutionPolicy Unrestricted -Command "& {Start-Process PowerShell -ArgumentList '-NoProfile -ExecutionPolicy Unrestricted ""iex(New-Object Net.WebClient).DownloadString(""""http://ibm.biz/idt-win-installer"""")"" ""%2"" ""%3"" ' -Verb RunAs}"
 ```
 
 ## Uninstall
 
-If you wish to remove the IBM Developer Tools CLI, run `idt uninstall`. This command is simply an alias defined during install that runs the following:
+If you wish to remove the IBM Developer Tools CLI, run:
 
 ```
-PowerShell -NoProfile -ExecutionPolicy Unrestricted -Command "& {Start-Process PowerShell -ArgumentList '-NoProfile -ExecutionPolicy Unrestricted """"iex(New-Object Net.WebClient).DownloadString('http://ibm.biz/idt-win-installer')"""" """"uninstall"""" """"%2"""" ' -Verb RunAs}"
+idt uninstall [--trace]
+```
+
+This command is simply a shortcut defined during install that runs (in admin mode)  the installer's uninstall action as shown here:
+
+```
+PowerShell -NoProfile -ExecutionPolicy Unrestricted -Command "& {Start-Process PowerShell -ArgumentList '-NoProfile -ExecutionPolicy Unrestricted ""iex(New-Object Net.WebClient).DownloadString(""""http://ibm.biz/idt-win-installer"""")"" ""uninstall"" ""%2"" ' -Verb RunAs}"
 ```
 
 
@@ -97,7 +107,7 @@ The script will check for the following prereqs, and attempt to install them if 
 Usage: idt-win-installer [<args>]
 
 Where <args> is:
-    install             [Default] Perform full install (or update) of all needed CLIs and Plugins
+    install | unpdate   [Default] Perform full install (or update) of all needed CLIs and Plugins
     uninstall           Uninstall full IBM Cloud CLI env, including 'bx', and plugins
     help | -h | -?      Show this help
     --force             Force updates of dependencies and other settings during update
@@ -127,6 +137,3 @@ Submit any issues to : https://github.com/IBM-Cloud/ibm-cloud-developer-tools/is
 IBM users can use pre-release versions of the IDT (bx and all plugins). The installer will check if you have the internal "stage1" plugin repo defined, and ask if you want to use it for updates.  Note: Since during initial install of the bx CLI does not have extra plugin repos defined, it only applies during subsequent updates.
 
 
-### MacOS &amp; Linux Installation
-
-**WARNING**: MacOS and Linux are not supported by this installer.  See the [MacOS &amp; Linux installation](../linux-installer/README.md) for additional information.
