@@ -107,7 +107,7 @@ The script will check for the following prereqs, and attempt to install them if 
 Usage: idt-win-installer [<args>]
 
 Where <args> is:
-    install | unpdate   [Default] Perform full install (or update) of all needed CLIs and Plugins
+    install | update    [Default] Perform full install (or update) of all needed CLIs and Plugins
     uninstall           Uninstall full IBM Cloud CLI env, including 'bx', and plugins
     help | -h | -?      Show this help
     --force             Force updates of dependencies and other settings during update
