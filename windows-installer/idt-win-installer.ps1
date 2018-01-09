@@ -15,8 +15,9 @@ $IDT_INSTALL_BMX_URL="https://clis.ng.bluemix.net/install"
 $IDT_INSTALL_BMX_REPO_NAME="Bluemix"
 $IDT_INSTALL_BMX_REPO_URL="https://plugins.ng.bluemix.net"
 
-$FORCE = 0
-$NEEDS_REBOOT = 0
+$Global:FORCE = $false
+$Global:NEEDS_REBOOT = $false
+$Global:SECS = 0
 
 #------------------------------------------------------------------------------
 function help {
@@ -67,26 +68,45 @@ function error() {
   quit
 }
 
+#------------------------------------------------------------------------------
 function quit() {
-   # If running in the console, wait for input before closing.
-   if ($Host.Name -eq "ConsoleHost") { 
-    Write-Host "Press any key to continue..."
-    $Host.UI.RawUI.FlushInputBuffer()   # Make sure buffered input doesn't "press a key" and skip the ReadKey().
-    $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyUp") > $null
+  $Global:SECS = (Get-Date)-$Global:SECS
+  log "--==[ Finished. Total time: $($Global:SECS.ToString("hh\:mm\:ss")) seconds ]==--"
+  Write-Host ""
+
+  #-- Request Restart to save changes to PATH.
+  if ( $Global:NEEDS_REBOOT ) {
+    $restart = Read-Host -Prompt "A system restart is required. Would you like to restart now (y/N)?"
+    if($restart -match "[Yy]" ) {
+      Restart-Computer
+    } else {
+      Write-Host "Note: Reboot still needed to load env variables."
+    }
+  } else {
+    # If running in the console, wait for input before closing.
+    if ($Host.Name -eq "ConsoleHost") { 
+      Write-Host "Press any key to continue..."
+      $Host.UI.RawUI.FlushInputBuffer()   # Make sure buffered input doesn't "press a key" and skip the ReadKey().
+      $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyUp") > $null
+      
+      #-- turn opff trace
+      Set-PSDebug -Trace 0
+    }
   }
 }
 
 #------------------------------------------------------------------------------
 function uninstall() {
   warn "Starting Uninstall..."
-  Write-Output
-  $reply = Read-Host -Prompt "Are you sure you want to remove IDT and IBM Cloud CLI (Y/n)?"
-  Write-Output
-  if($reply -match "[Yy]*") {
+  Write-Output ""
+  $reply = Read-Host -Prompt "Are you sure you want to remove IDT and IBM Cloud CLI (y/N)?"
+  Write-Output ""
+  if($reply -match "[Yy]") {
+    log "Uninstalling IDT..."
     log "Deleting: C:\Program Files\IBM\Bluemix"
-    Remove-Item -Recurse -Force "C:\Program Files\IBM\Bluemix"
+    Remove-Item -Recurse -Force "C:\Program Files\IBM\Bluemix" -erroraction 'silentlycontinue' 
     log "Deleting: ~/.bluemix"
-    Remove-Item -Recurse -Force ~/.bluemix
+    Remove-Item -Recurse -Force ~/.bluemix -erroraction 'silentlycontinue' 
     log "Uninstall complete."
   } else {
     log "Uninstall cancelled at user request"
@@ -119,13 +139,6 @@ function install() {
 
   log "Install finished."
 
-  #-- Request Restart to save changes to PATH.
-  if ($NEEDS_REBOOT -eq 1 ) {
-    $restart = Read-Host "A system restart is required. Would you like to restart now (y/N)?"
-    if($restart -match "[Yy]*" ) {
-        Restart-Computer
-    }
-  }
 }
 
 
@@ -135,69 +148,76 @@ function install_deps() {
 
   #-- git
   log "Checking for external dependency: git"
-  if( -not (get-command git -erroraction 'silentlycontinue') -or $FORCE -eq 1) {
+  if( -not (get-command git -erroraction 'silentlycontinue') -or $Global:FORC) {
     log "Installing/updating external dependency: git"
     $gitVersion = (Invoke-WebRequest "https://git-scm.com/downloads/latest" -UseBasicParsing).Content
     Invoke-WebRequest "https://github.com/git-for-windows/git/releases/download/v$gitVersion.windows.1/Git-$gitVersion-64-bit.exe" -UseBasicParsing -outfile "git-installer.exe"
     .\git-installer.exe /SILENT /PathOption="Cmd" | Out-Null
     Remove-Item "git-installer.exe"
-    $NEEDS_REBOOT = 1
+    $Global:NEEDS_REBOOT = $true
     log "Install/update completed for: git"
   }
 
   #-- docker
   log "Checking for external dependency: docker"
-  if( -not(get-command docker -erroraction 'silentlycontinue') -or $FORCE -eq 1) {
+  if( -not(get-command docker -erroraction 'silentlycontinue') -or $Global:FORC) {
     log "Installing/updating external dependency: docker"
     Invoke-WebRequest "https://download.docker.com/win/stable/InstallDocker.msi" -UseBasicParsing -outfile "InstallDocker.msi"
     msiexec /i InstallDocker.msi /passive | Out-Null
-    $NEEDS_REBOOT = 1
+    $Global:NEEDS_REBOOT = $true
     log "Install/update completed for: docker"
   }
 
   #-- kubectl
   log "Checking for external dependency: kubectl"
-  if( -not( get-command kubectl -erroraction 'silentlycontinue') -or $FORCE -eq 1) {
+  if( -not( get-command kubectl -erroraction 'silentlycontinue') -or $Global:FORC) {
     log "Installing/updating external dependency: kubectl"
     $kube_version = (Invoke-WebRequest "https://storage.googleapis.com/kubernetes-release/release/stable.txt" -UseBasicParsing).Content
     $kube_version = $kube_version -replace "`n|`r"
     Invoke-WebRequest "https://storage.googleapis.com/kubernetes-release/release/$kube_version/bin/windows/amd64/kubectl.exe" -UseBasicParsing -outfile "kubectl.exe"
-    mkdir "C:\Program Files\kubectl"
-    Move-Item -Path "kubectl.exe" -Destination "C:\Program Files\kubectl"
-    # Directly edit the registery to add kubectl to PATH. Will require a restart to stick.
-    $regPath = "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment"
-    $value = (Get-ItemProperty $regPath -Name Path).Path
-    $newValue = $value+";C:\Program Files\kubectl"
-    Set-ItemProperty -Path $regPath -Name Path -Value $newValue | Out-Null
-    $NEEDS_REBOOT = 1
+    mkdir "C:\Program Files\kubectl" -erroraction 'silentlycontinue'
+    Move-Item -Path "kubectl.exe" -Destination "C:\Program Files\kubectl" -force
+    add_to_path("C:\Program Files\kubectl")
+    $Global:NEEDS_REBOOT = $true
     log "Install/update completed for: kubectl"
   }
 
   #-- helm
   log "Checking for external dependency: helm"
-  if( -not (get-command helm -erroraction 'silentlycontinue') -or $FORCE -eq 1) {
+  if( -not (get-command helm -erroraction 'silentlycontinue') -or $Global:FORC) {
     log "Installing/updating external dependency: helm"
     $helm_url = ((Invoke-WebRequest https://github.com/kubernetes/helm -UseBasicParsing).Links.OuterHTML | Where-Object{$_ -match 'windows-amd64.tar.gz'} | Select-Object -first 1).Split('"')[1]
-    Write-Output "Helm URL : $helm_url"
-    $helm_file = $helm_url.Split("/")[$_.Length-1]
-    Write-Output "Helm File: $helm_file"
+    log "Helm URL : $helm_url"
+    $helm_file = $helm_url.Split("/")[-1]
+    log "Helm File: $helm_file"
     Invoke-WebRequest $helm_url -UseBasicParsing -outfile "$helm_file"
     mkdir "C:\Program Files\helm" -ErrorAction SilentlyContinue
     if (-not (Get-Command Expand-7Zip -ErrorAction Ignore)) {
         Install-Package -Scope CurrentUser -Force 7Zip4PowerShell > $null
     }
     Expand-7Zip $helm_file .
-    $tar = $helm_file.Replace('.gz','')
-    Expand-7Zip $tar "C:\Program Files\helm"
-    Remove-Item $helm_file $tar
-    # Directly edit the registery to add helm to PATH. Will require a restart to stick.
-    $regPath = "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment"
-    $value = (Get-ItemProperty $regPath -Name Path).Path
-    $newValue = $value+";C:\Program Files\helm\windows-amd64"
-    Set-ItemProperty -Path $regPath -Name Path -Value $newValue | Out-Null
-    $NEEDS_REBOOT = 1
+    $tar_file = $helm_file.Replace('.gz','')
+    Expand-7Zip $tar_file "C:\Program Files\helm"
+    Remove-Item $helm_file -erroraction 'silentlycontinue'
+    Remove-Item $tar_file  -erroraction 'silentlycontinue'
+    add_to_path("C:\Program Files\helm\windows-amd64")
+    $Global:NEEDS_REBOOT = $true
     log "Install/update completed for: helm"
   }
+}
+
+#------------------------------------------------------------------------------
+#-- Add a dir to the system path
+function add_to_path {
+  Param($path)
+  # Directly edit the registery to add kubectl to PATH. Will require a restart to stick.
+  $regPath = "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment"
+  $value = (Get-ItemProperty $regPath -Name Path).Path
+  if ( -not ($value -match [Regex]::Escape("$path") )) {
+    log "Adding $path to PATH"
+    $newValue = "$value;$path"
+    Set-ItemProperty -Path $regPath -Name Path -Value $newValue | Out-Null
+  }  
 }
 
 #------------------------------------------------------------------------------
@@ -211,8 +231,7 @@ function install_bx() {
     $url = $IDT_INSTALL_BMX_URL + "/powershell"
     log "Downloading and installing IBM Cloud 'bx' CLI from: $url" 
     Invoke-Expression(New-Object Net.WebClient).DownloadString( $url )
-    C:\"Program Files"\IBM\Bluemix\bin\bx.exe api api.ng.bluemix.net
-    $NEEDS_REBOOT = 1
+    $Global:NEEDS_REBOOT = $true
   }
   log "IBM Cloud CLI version:"
   C:\"Program Files"\IBM\Bluemix\bin\bx.exe --version
@@ -276,7 +295,7 @@ REM #-----------------------------------------------------------
 #------------------------------------------------------------------------------
 function main {
   log "--==[ $PROG, v$VERSION ]==--"
-  $secs = (Get-Date)
+  $Global:SECS = (Get-Date)
 
   #-- Check for Windows 10
   if ([System.Environment]::OSVersion.Version.Major -lt 10) {
@@ -306,7 +325,7 @@ function main {
         Set-PSDebug -Trace 1
       }
       "--force" {
-        $FORCE=1
+        $Global:FORC=$true
         warn "Forcing updates for all dependencies and other settings"
       }
       "update"    { $ACTION = "install" }
@@ -321,9 +340,6 @@ function main {
     "uninstall" { uninstall }
     default     { help }
   }
-
-  $secs = (Get-Date)-$secs
-  log "--==[ Finished. Total time: $($secs.ToString("hh\:mm\:ss")) seconds ]==--"
 
   quit
 }
