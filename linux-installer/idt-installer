@@ -136,7 +136,7 @@ function install {
       echo
       prompt "Use IBM internal '$repo' repos for install/updates (Y/n)?"
       echo
-      if [[ "$REPLY" == [Yy]* ]]; then
+      if [[ "$REPLY" != [Nn]* ]]; then
         IDT_INSTALL_BMX_URL="https://clis.stage1.ng.bluemix.net/install"
         IDT_INSTALL_BMX_REPO_NAME="${repo}"
         IDT_INSTALL_BMX_REPO_URL="${url}"
@@ -171,8 +171,8 @@ function install_deps {
 
     #-- Xcode and Cocoapods
     log "Checking if Xcode is installed"
-    if [[ -z "$(ls -d /Applications/Xcode*.zpp)" ]]; then
-      log "Xcode does not appear to be installed on this system."
+    if [[ -z "$(ls -d /Applications/Xcode*.zpp 2>/dev/null)" ]]; then
+      warn "Xcode does not appear to be installed on this system."
     fi
     log "Installing/updating external dependency: cocoapods"
     if [[ -z "$(gem list --local | grep "^cocoapods ")" || "$FORCE" == true ]]; then
