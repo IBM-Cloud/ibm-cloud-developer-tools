@@ -59,19 +59,33 @@ idt update --trace
 
 If you wish to update the IBM Developer Tools CLI, run `idt update`. There is also a `--force` argument that will force update to all dependencies too.
 
+Syntax:
+```
+idt update [--force] [--trace]
+```
+
 This command is simply an alias defined during initial install that runs the installer shown here:
 
 ```
 $ curl -sL https://ibm.biz/idt-installer | bash -c -- [--force]
 ```
 
+
 ## Uninstall
 
-If you wish to remove the IBM Developer Tools CLI, run `idt uninstall`. This command is simply an alias defined during install that runs the following:
+If you wish to remove the IBM Developer Tools CLI, run `idt uninstall`. 
+
+Syntax:
+```
+idt uninstall [--trace]
+```
+
+This command is simply an alias defined during install that runs the following:
 
 ```
 $ curl -sL https://ibm.biz/idt-installer | bash -c -- uninstall
 ```
+
 
 
 ## Pre-Requisites
