@@ -5,15 +5,15 @@
 #------------------------------------------------------------------------------
 # Copyright (c) 2018, International Business Machines. All Rights Reserved.
 #------------------------------------------------------------------------------
-$VERSION="1.2.0"
-$PROG="IBM Cloud Developer Tools - Installer for Windows"
+$Global:VERSION="1.2.0"
+$Global:PROG="IBM Cloud Developer Tools - Installer for Windows"
 
-$INSTALLER_URL="https://ibm.biz/idt-win-installer"
-$GIT_URL="https://github.com/IBM-Cloud/ibm-cloud-developer-tools"
-$SLACK_URL="https://slack-invite-ibm-cloud-tech.mybluemix.net/"
-$IDT_INSTALL_BMX_URL="https://clis.ng.bluemix.net/install"
-$IDT_INSTALL_BMX_REPO_NAME="Bluemix"
-$IDT_INSTALL_BMX_REPO_URL="https://plugins.ng.bluemix.net"
+$Global:INSTALLER_URL="https://ibm.biz/idt-win-installer"
+$Global:GIT_URL="https://github.com/IBM-Cloud/ibm-cloud-developer-tools"
+$Global:SLACK_URL="https://slack-invite-ibm-cloud-tech.mybluemix.net/"
+$Global:IDT_INSTALL_BMX_URL="https://clis.ng.bluemix.net/install"
+$Global:IDT_INSTALL_BMX_REPO_NAME="Bluemix"
+$Global:IDT_INSTALL_BMX_REPO_URL="https://plugins.ng.bluemix.net"
 
 $Global:FORCE = $false
 $Global:NEEDS_REBOOT = $false
@@ -23,7 +23,7 @@ $Global:SECS = 0
 function help {
   Write-Output @"
 
-  $PROG
+  $Global:PROG
   Usage: idt-win-installer [<args>]
 
   Where <args> is:
@@ -42,8 +42,8 @@ function help {
       - idt update    : Runs this installer checking for and installing any updates
       - idt uninstall : Uninstalls IDT, 'bx' cli, and all plugins  
 
-  Chat with us on Slack: ${SLACK_URL}, channel #developer-tools
-  Submit any issues to : ${GIT_URL}/issues
+  Chat with us on Slack: $Global:SLACK_URL, channel #developer-tools
+  Submit any issues to : $Global:GIT_URL/issues
 
 "@
 }
@@ -125,9 +125,9 @@ function install() {
       $reply = Read-Host -Prompt "Use IBM internal repos for install/updates (Y/n)?"
       Write-Output
       if($reply -match "[Yy]*") {
-        $IDT_INSTALL_BMX_URL="https://clis.stage1.ng.bluemix.net/install"
-        $IDT_INSTALL_BMX_REPO_NAME="stage1"
-        $IDT_INSTALL_BMX_REPO_URL="https://plugins.stage1.ng.bluemix.net"
+        $Global:IDT_INSTALL_BMX_URL="https://clis.stage1.ng.bluemix.net/install"
+        $Global:IDT_INSTALL_BMX_REPO_NAME="stage1"
+        $Global:IDT_INSTALL_BMX_REPO_URL="https://plugins.stage1.ng.bluemix.net"
       }
     }
   }
@@ -148,7 +148,7 @@ function install_deps() {
 
   #-- git
   log "Checking for external dependency: git"
-  if( -not (get-command git -erroraction 'silentlycontinue') -or $Global:FORC) {
+  if( -not (get-command git -erroraction 'silentlycontinue') -or $Global:FORCE) {
     log "Installing/updating external dependency: git"
     $gitVersion = (Invoke-WebRequest "https://git-scm.com/downloads/latest" -UseBasicParsing).Content
     Invoke-WebRequest "https://github.com/git-for-windows/git/releases/download/v$gitVersion.windows.1/Git-$gitVersion-64-bit.exe" -UseBasicParsing -outfile "git-installer.exe"
@@ -160,7 +160,7 @@ function install_deps() {
 
   #-- docker
   log "Checking for external dependency: docker"
-  if( -not(get-command docker -erroraction 'silentlycontinue') -or $Global:FORC) {
+  if( -not(get-command docker -erroraction 'silentlycontinue') -or $Global:FORCE) {
     log "Installing/updating external dependency: docker"
     Invoke-WebRequest "https://download.docker.com/win/stable/InstallDocker.msi" -UseBasicParsing -outfile "InstallDocker.msi"
     msiexec /i InstallDocker.msi /passive | Out-Null
@@ -170,7 +170,7 @@ function install_deps() {
 
   #-- kubectl
   log "Checking for external dependency: kubectl"
-  if( -not( get-command kubectl -erroraction 'silentlycontinue') -or $Global:FORC) {
+  if( -not( get-command kubectl -erroraction 'silentlycontinue') -or $Global:FORCE) {
     log "Installing/updating external dependency: kubectl"
     $kube_version = (Invoke-WebRequest "https://storage.googleapis.com/kubernetes-release/release/stable.txt" -UseBasicParsing).Content
     $kube_version = $kube_version -replace "`n|`r"
@@ -184,7 +184,7 @@ function install_deps() {
 
   #-- helm
   log "Checking for external dependency: helm"
-  if( -not (get-command helm -erroraction 'silentlycontinue') -or $Global:FORC) {
+  if( -not (get-command helm -erroraction 'silentlycontinue') -or $Global:FORCE) {
     log "Installing/updating external dependency: helm"
     $helm_url = ((Invoke-WebRequest https://github.com/kubernetes/helm -UseBasicParsing).Links.OuterHTML | Where-Object{$_ -match 'windows-amd64.tar.gz'} | Select-Object -first 1).Split('"')[1]
     log "Helm URL : $helm_url"
@@ -228,7 +228,7 @@ function install_bx() {
       bx update
   } else {
     log "Installing IBM Cloud 'bx' CLI for Windows..."
-    $url = $IDT_INSTALL_BMX_URL + "/powershell"
+    $url = $Global:IDT_INSTALL_BMX_URL + "/powershell"
     log "Downloading and installing IBM Cloud 'bx' CLI from: $url" 
     Invoke-Expression(New-Object Net.WebClient).DownloadString( $url )
     $Global:NEEDS_REBOOT = $true
@@ -241,23 +241,26 @@ function install_bx() {
 #-- Install Bluemix CLI Plugins.
 function install_plugins {
   log "Installing/updating IBM Cloud CLI plugins used by IDT..."
-  $EXT_PLUGINS = "Cloud-Functions",
-                "container-registry",
-                "container-service",
-                "dev",
-                "schematics",
-                "sdk-gen"
+  $plugins = "Cloud-Functions",
+             "container-registry",
+             "container-service",
+             "dev",
+             "schematics",
+             "sdk-gen"
   $pluginlist = C:\"Program Files"\IBM\Bluemix\bin\bx.exe plugin list
-  Foreach ($plugin in $EXT_PLUGINS) {
-      log "Checking status of plugin: $plugin"
-      if($pluginlist -match "\b$plugin\b") {
-          log "Updating plugin '$plugin'"
-          C:\"Program Files"\IBM\Bluemix\bin\bx.exe plugin update -r $IDT_INSTALL_BMX_REPO_NAME $plugin
-      } else {
-          log "Installing plugin '$plugin'"
-          C:\"Program Files"\IBM\Bluemix\bin\bx.exe plugin install -r $IDT_INSTALL_BMX_REPO_NAME $plugin
-      }
+  Foreach ($plugin in $plugins) {
+    log "Checking status of plugin: $plugin"
+    if($pluginlist -match "\b$plugin\b") {
+        log "Updating plugin '$plugin'"
+        C:\"Program Files"\IBM\Bluemix\bin\bx.exe plugin update -r $Global:IDT_INSTALL_BMX_REPO_NAME $plugin
+    } else {
+        log "Installing plugin '$plugin'"
+        C:\"Program Files"\IBM\Bluemix\bin\bx.exe plugin install -r $Global:IDT_INSTALL_BMX_REPO_NAME $plugin
+    }
   }
+  log "Running 'bx plugin list'..."
+  C:\"Program Files"\IBM\Bluemix\bin\bx.exe plugin list
+  log "Finished installing/updating plugins"
 }
 
 #------------------------------------------------------------------------------
@@ -294,7 +297,7 @@ REM #-----------------------------------------------------------
 # MAIN
 #------------------------------------------------------------------------------
 function main {
-  log "--==[ $PROG, v$VERSION ]==--"
+  log "--==[ $Global:PROG, v$Global:VERSION ]==--"
   $Global:SECS = (Get-Date)
 
   #-- Check for Windows 10
@@ -325,12 +328,13 @@ function main {
         Set-PSDebug -Trace 1
       }
       "--force" {
-        $Global:FORC=$true
+        $Global:FORCE=$true
         warn "Forcing updates for all dependencies and other settings"
       }
       "update"    { $ACTION = "install" }
       "install"   { $ACTION = "install" }
       "uninstall" { $ACTION = "uninstall" }
+      "help"      { $ACTION = "help" }
       default     { $ACTION = "help" }
     }
   }
