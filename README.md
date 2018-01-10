@@ -1,8 +1,6 @@
 # IBM Cloud Developer Tools
 
 [![](https://img.shields.io/badge/IBM%20Cloud-powered-blue.svg)](https://bluemix.net)
-![Platform](https://img.shields.io/badge/platform-BASH-lightgrey.svg?style=flat)
-![Platform](https://img.shields.io/badge/platform-PowerShell-lightgrey.svg?style=flat)
 
 This repo provides support for the IBM Cloud Developer Tools (IDT) CLI environment. The IDT tools currently consists of the IBM Cloud CLI (bx) 'dev' and other plugins, as well as extensions to multiple IDEs.
 
@@ -12,7 +10,7 @@ These tools work for the following environments:
 - [IBM **Cloud** Dedicated](https://www.ibm.com/cloud-computing/bluemix/dedicated)
 - [IBM MicroService Builder](https://developer.ibm.com/microservice-builder/)
 
-If you run into any issues, please let us know on the [IBM Cloud Tech Slack :: #developer-tools](https://slack-invite-ibm-cloud-tech.mybluemix.net/) or file an issue on our [GitHub repo](https://github.com/IBM-Bluemix/ibm-cloud-developer-tools).
+If you run into any issues, please let us know on the [IBM Cloud Tech Slack :: #developer-tools](https://slack-invite-ibm-cloud-tech.mybluemix.net/) or file an issue on our [GitHub repo](https://github.com/IBM-Cloud/ibm-cloud-developer-tools).
 
 
 
@@ -24,19 +22,10 @@ The following command will install the IBM Cloud Developer Tools in a single inv
 $ curl -sL https://ibm.biz/idt-installer | bash
 ```
 
-By default, this installer will use the 'brew' installer on MacOS, if available. If you explicitly do not want to use brew, execute the following command using the `--nobrew` option:
-
-```
-curl -sL https://ibm.biz/idt-installer | bash -s -- --nobrew
-```
-
-Once complete, there will be three aliases defined to access the IBM Cloud Developer Tools:
-- `idt` : Main command line tool. Shorthand for standard 'bx dev' command
-- `idt-update` : Update your IBM Cloud Developer Tools to the latest versions
-- `idt-uninstall` : Uninstall the IBM Cloud Developer Tools
-
-Note: In order to access these aliases, you need to either restart your terminal session,
-or reload your bash env (ie `. ~/.bashrc`)
+Once complete, there will be three shortcuts defined to access the IBM Cloud Developer Tools:
+- `idt` : Main command line tool. Shorthand for 'bx dev' command
+- `idt update` : Update your IBM Cloud Developer Tools to the latest versions
+- `idt uninstall` : Uninstall the IBM Cloud Developer Tools
 
 Access the [platform-specific readme](./linux-installer/README.md) for additional details.
 
@@ -70,5 +59,5 @@ Notice: These extensions are provided "as-is". IBM does not explicitly endorse, 
 
 We can be reached in the following ways.  We encourage and welcome all feedback and suggestions
 - [IBM Cloud Tech Slack](https://slack-invite-ibm-cloud-tech.mybluemix.net/): Find us on the `#developer-tools` channel
-- [IBM Cloud Developer Tools GitHub repo](https://github.com/IBM-Cloud/ibm-cloud-developer-tools): Use to file any issues specific to installation of the tools
+- [IBM Cloud Developer Tools GitHub repo](https://github.com/IBM-Cloud/ibm-cloud-developer-tools): Use to file any issues specific to installation of the tools or the IDE extensions.
 

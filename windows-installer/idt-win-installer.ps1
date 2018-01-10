@@ -1,129 +1,358 @@
-# idt-win-installer
-# Installs IBM Developer Bluemix CLI plugin and all dependencies.
-# VERSION="0.8"
+#------------------------------------------------------------------------------
+# Script:  idt-win-installer
+#------------------------------------------------------------------------------
+# IBM Cloud Developer Tools - CLI installer script for Windows 10 systems
+#------------------------------------------------------------------------------
+# Copyright (c) 2018, International Business Machines. All Rights Reserved.
+#------------------------------------------------------------------------------
+$Global:VERSION="1.2.0"
+$Global:PROG="IBM Cloud Developer Tools - Installer for Windows"
 
-# Check for Windows 10
-if ([System.Environment]::OSVersion.Version.Major -ne 10)
-{
-    echo "This installer requires Windows 10."
-    exit
+$Global:INSTALLER_URL="https://ibm.biz/idt-win-installer"
+$Global:GIT_URL="https://github.com/IBM-Cloud/ibm-cloud-developer-tools"
+$Global:SLACK_URL="https://slack-invite-ibm-cloud-tech.mybluemix.net/"
+$Global:IDT_INSTALL_BMX_URL="https://clis.ng.bluemix.net/install"
+$Global:IDT_INSTALL_BMX_REPO_NAME="Bluemix"
+$Global:IDT_INSTALL_BMX_REPO_URL="https://plugins.ng.bluemix.net"
+
+$Global:FORCE = $false
+$Global:NEEDS_REBOOT = $false
+$Global:SECS = 0
+
+#------------------------------------------------------------------------------
+function help {
+  Write-Output @"
+
+  $Global:PROG
+  Usage: idt-win-installer [<args>]
+
+  Where <args> is:
+    install | update   [Default] Perform install (or update) of all needed CLIs and Plugins
+    uninstall          Uninstall full IBM Cloud CLI env, including 'bx', and plugins
+    help               Show this help
+    --force | -f       Force updates of dependencies and other settings during update
+    --trace            Eanble verbose tracing of all activity
+
+  If "install", "update", or no action, a full CLI installation (or update) will occur:
+  1. Pre-req check for 'git', 'docker', 'kubectl', and 'helm'
+  2. Install latest IBM Cloud 'bx' CLI
+  3. Install all required plugins
+  4. Defines 'idt' shortcut to improve useability.
+      - idt           : Shortcut for normal "bx dev" command
+      - idt update    : Runs this installer checking for and installing any updates
+      - idt uninstall : Uninstalls IDT, 'bx' cli, and all plugins  
+
+  Chat with us on Slack: $Global:SLACK_URL, channel #developer-tools
+  Submit any issues to : $Global:GIT_URL/issues
+
+"@
 }
 
-# Check for 64-bit Platform - Dev and Helm do not have 32-bit versions.
-if ([Environment]::Is64BitProcess -ne [Environment]::Is64BitOperatingSystem)
-{
-    echo "This installer requires 64-bit Windows."
-    exit
+
+#------------------------------------------------------------------------------
+function log() {
+  Write-Host "[$((Get-PSCallStack)[1].Command)] " -foreground cyan  -nonewline
+  Write-Host $args
 }
 
-# Running as admin defaults to system32 change to home directory.
-cd ~
+function warn() {
+  Write-Host "[$((Get-PSCallStack)[1].Command)] " -foreground cyan  -nonewline
+  Write-Host "WARN" -foreground yellow  -nonewline
+  Write-Host ": $args"
+}
 
-# Install dependencies - git, docker, kubectl, helm.
-$EXT_PROGS = "git,https://git-scm.com","docker,https://docs.docker.com/engine/installation","kubectl,https://kubernetes.io/docs/tasks/tools/install-kubectl/","helm,https://github.com/kubernetes/helm/blob/master/docs/install.md"
-Foreach($i in $EXT_PROGS) {
-    $prog_bin, $prog_url = $i.split(",")
-    echo "Checking for dependency $prog_bin"
-    if( get-command $prog_bin -erroraction 'silentlycontinue' ) {
-        echo "$prog_bin already installed"
+function error() {
+  Write-Host "[$((Get-PSCallStack)[1].Command)] " -foreground cyan  -nonewline
+  Write-Host "ERROR" -foreground red  -nonewline
+  Write-Host ": $args"
+  quit
+}
+
+#------------------------------------------------------------------------------
+function quit() {
+  $Global:SECS = (Get-Date)-$Global:SECS
+  log "--==[ Finished. Total time: $($Global:SECS.ToString("hh\:mm\:ss")) seconds ]==--"
+  Write-Host ""
+
+  #-- Request Restart to save changes to PATH.
+  if ( $Global:NEEDS_REBOOT ) {
+    $restart = Read-Host -Prompt "A system restart is required. Would you like to restart now (y/N)?"
+    if($restart -match "[Yy]" ) {
+      Restart-Computer
     } else {
-        echo "$prog_bin attempting to install..."
-        if ($prog_bin -eq "git") {
-            $gitVersion = (Invoke-WebRequest "https://git-scm.com/downloads/latest").Content
-            Invoke-WebRequest "https://github.com/git-for-windows/git/releases/download/v$gitVersion.windows.1/Git-$gitVersion-64-bit.exe" -outfile "git-installer.exe"
-            .\git-installer.exe /SILENT /PathOption="Cmd" | Out-Null
-            rm "git-installer.exe"
-        } elseif ($prog_bin -eq "docker") {
-            Invoke-WebRequest "https://download.docker.com/win/stable/InstallDocker.msi" -outfile "InstallDocker.msi"
-            msiexec /i InstallDocker.msi /passive | Out-Null
-        } elseif ($prog_bin -eq "kubectl") {
-            $kube_version = (Invoke-WebRequest "https://storage.googleapis.com/kubernetes-release/release/stable.txt").Content
-            $kube_version = $kube_version -replace "`n|`r"
-            Invoke-WebRequest "https://storage.googleapis.com/kubernetes-release/release/$kube_version/bin/windows/amd64/kubectl.exe" -outfile "kubectl.exe"
-            mkdir "C:\Program Files\kubectl"
-            Move-Item -Path "kubectl.exe" -Destination "C:\Program Files\kubectl"
-            # Directly edit the registery to add kubectl to PATH. Will require a restart to stick.
-            $regPath = "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment"
-            $value = (Get-ItemProperty $regPath -Name Path).Path
-            $newValue = $value+";C:\Program Files\kubectl"
-            Set-ItemProperty -Path $regPath -Name Path -Value $newValue | Out-Null
-        } elseif ($prog_bin -eq "helm") {
-            $helm_url = "https://github.com/kubernetes/helm/releases/latest"
-            $TAG = (((Invoke-WebRequest 'https://github.com/kubernetes/helm/releases/latest').Links.outerHTML | Where{$_ -match '/tag/'} | select -first 1).Split('"')[3]).Split("/")[$_.Length-1]
-            if("x$TAG" -eq "x") {
-                echo "Cannot determine tag"
-                return
-            }
-            $helm_download_url = "https://storage.googleapis.com/kubernetes-helm/helm-$TAG-windows-amd64.zip"
-            Invoke-WebRequest $helm_download_url -outfile "helm-$TAG-windows-amd64.zip"
-            mkdir "C:\Program Files\helm"
-            Expand-Archive helm-$TAG-windows-amd64.zip -DestinationPath "C:\Program Files\helm"
-            # Directly edit the registery to add helm to PATH. Will require a restart to stick.
-            $regPath = "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment"
-            $value = (Get-ItemProperty $regPath -Name Path).Path
-            $newValue = $value+";C:\Program Files\helm\windows-amd64"
-            Set-ItemProperty -Path $regPath -Name Path -Value $newValue | Out-Null
-            rm "helm-$TAG-windows-amd64.zip"
-        } else {
-            echo "$prog_bin install not implemented"
-        }
+      Write-Host "Note: Reboot still needed to load env variables."
     }
-}
-
-# Install Bluemix CLI.
-if( get-command bx -erroraction 'silentlycontinue') {
-    echo "bx already installed"
-} else {
-    iex(New-Object Net.WebClient).DownloadString("https://clis.ng.bluemix.net/install/powershell")
-    C:\"Program Files"\IBM\Bluemix\bin\bx.exe api api.ng.bluemix.net
-}
-
-# Install Bluemix CLI Plugins.
-$EXT_PLUGINS = "container-registry","container-service","dev","IBM-Containers","schematics"
-$EXT_PLUGINS = New-Object System.Collections.ArrayList(,$EXT_PLUGINS)
-$pluginlist = C:\"Program Files"\IBM\Bluemix\bin\bx.exe plugin list
-# Parse bx plugin list to determine what plugins are installed already.
-for ($i=2; $i -lt $pluginlist.length; $i++) {
-    $item = $pluginlist[$i].split(" ",2)
-    if($item[0] -match "\bdev\b") {
-        echo "dev is installed"
-        $EXT_PLUGINS.remove("dev")
-    } elseif ($item[0] -match "\bcontainer-registry\b") {
-        echo "constainer-registry is installed"
-        $EXT_PLUGINS.remove("container-registry")
-    } elseif ($item[0] -match "\bcontainer-service\b") {
-        echo "container-service is installed"
-        $EXT_PLUGINS.remove("container-service")
-    } elseif ($item[0] -match "\bIBM-Containers\b") {
-        echo "IBM-Containers is installed"
-        $EXT_PLUGINS.remove("IBM-Containers")
-    } elseif ($item[0] -match "\bschematics\b") {
-        echo "schematics is installed"
-        $EXT_PLUGINS.remove("schematics")
+  } else {
+    # If running in the console, wait for input before closing.
+    if ($Host.Name -eq "ConsoleHost") { 
+      Write-Host "Press any key to continue..."
+      $Host.UI.RawUI.FlushInputBuffer()   # Make sure buffered input doesn't "press a key" and skip the ReadKey().
+      $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyUp") > $null
+      
+      #-- turn opff trace
+      Set-PSDebug -Trace 0
     }
-}
-# Install plugins.
-if( $EXT_PLUGINS.contains("Cloud-Functions")) {
-    C:\"Program Files"\IBM\Bluemix\bin\bx.exe plugin install Cloud-Functions -r Bluemix
-}
-if( $EXT_PLUGINS.contains("container-registry")) {
-    C:\"Program Files"\IBM\Bluemix\bin\bx.exe plugin install container-registry -r Bluemix
-}
-if( $EXT_PLUGINS.contains("container-service")) {
-    C:\"Program Files"\IBM\Bluemix\bin\bx.exe plugin install container-service -r Bluemix
-}
-if( $EXT_PLUGINS.contains("schematics")) {
-    C:\"Program Files"\IBM\Bluemix\bin\bx.exe plugin install schematics -r Bluemix
-}
-if( $EXT_PLUGINS.contains("dev")) {
-    C:\"Program Files"\IBM\Bluemix\bin\bx.exe plugin install dev -r Bluemix
-}
-if( $EXT_PLUGINS.contains("sdk-gen")) {
-    C:\"Program Files"\IBM\Bluemix\bin\bx.exe plugin install sdk-gen -r Bluemix
+  }
 }
 
-# Request Restart to save changes to PATH.
-$restart = Read-Host "A system restart is required. Would you like to restart now (y/n)? (default is n)"
-if($restart -eq "y" -Or $restart -eq "yes") {
-    Restart-Computer
+#------------------------------------------------------------------------------
+function uninstall() {
+  warn "Starting Uninstall..."
+  Write-Output ""
+  $reply = Read-Host -Prompt "Are you sure you want to remove IDT and IBM Cloud CLI (y/N)?"
+  Write-Output ""
+  if($reply -match "[Yy]") {
+    log "Uninstalling IDT..."
+    log "Deleting: C:\Program Files\IBM\Bluemix"
+    Remove-Item -Recurse -Force "C:\Program Files\IBM\Bluemix" -erroraction 'silentlycontinue' 
+    log "Deleting: ~/.bluemix"
+    Remove-Item -Recurse -Force ~/.bluemix -erroraction 'silentlycontinue' 
+    log "Uninstall complete."
+  } else {
+    log "Uninstall cancelled at user request"
+  }
 }
+
+#------------------------------------------------------------------------------
+function install() {
+  log "Starting Installation/Update..."
+
+  #-- Check if internal IBM setup
+  if( get-command bx -erroraction 'silentlycontinue' ) {
+    $pluginlist = C:\"Program Files"\IBM\Bluemix\bin\bx.exe plugin list
+    if($pluginlist -match "\bstage\b") {
+      Write-Output
+      $reply = Read-Host -Prompt "Use IBM internal repos for install/updates (Y/n)?"
+      Write-Output
+      if($reply -match "[Yy]*") {
+        $Global:IDT_INSTALL_BMX_URL="https://clis.stage1.ng.bluemix.net/install"
+        $Global:IDT_INSTALL_BMX_REPO_NAME="stage1"
+        $Global:IDT_INSTALL_BMX_REPO_URL="https://plugins.stage1.ng.bluemix.net"
+      }
+    }
+  }
+
+  install_deps
+  install_bx
+  install_plugins
+  env_setup add
+
+  log "Install finished."
+
+}
+
+
+#------------------------------------------------------------------------------
+#-- Install dependencies - git, docker, kubectl, helm.
+function install_deps() {
+
+  #-- git
+  log "Checking for external dependency: git"
+  if( -not (get-command git -erroraction 'silentlycontinue') -or $Global:FORCE) {
+    log "Installing/updating external dependency: git"
+    $gitVersion = (Invoke-WebRequest "https://git-scm.com/downloads/latest" -UseBasicParsing).Content
+    Invoke-WebRequest "https://github.com/git-for-windows/git/releases/download/v$gitVersion.windows.1/Git-$gitVersion-64-bit.exe" -UseBasicParsing -outfile "git-installer.exe"
+    .\git-installer.exe /SILENT /PathOption="Cmd" | Out-Null
+    Remove-Item "git-installer.exe"
+    $Global:NEEDS_REBOOT = $true
+    log "Install/update completed for: git"
+  }
+
+  #-- docker
+  log "Checking for external dependency: docker"
+  if( -not(get-command docker -erroraction 'silentlycontinue') -or $Global:FORCE) {
+    log "Installing/updating external dependency: docker"
+    Invoke-WebRequest "https://download.docker.com/win/stable/InstallDocker.msi" -UseBasicParsing -outfile "InstallDocker.msi"
+    msiexec /i InstallDocker.msi /passive | Out-Null
+    $Global:NEEDS_REBOOT = $true
+    log "Install/update completed for: docker"
+  }
+
+  #-- kubectl
+  log "Checking for external dependency: kubectl"
+  if( -not( get-command kubectl -erroraction 'silentlycontinue') -or $Global:FORCE) {
+    log "Installing/updating external dependency: kubectl"
+    $kube_version = (Invoke-WebRequest "https://storage.googleapis.com/kubernetes-release/release/stable.txt" -UseBasicParsing).Content
+    $kube_version = $kube_version -replace "`n|`r"
+    Invoke-WebRequest "https://storage.googleapis.com/kubernetes-release/release/$kube_version/bin/windows/amd64/kubectl.exe" -UseBasicParsing -outfile "kubectl.exe"
+    mkdir "C:\Program Files\kubectl" -erroraction 'silentlycontinue'
+    Move-Item -Path "kubectl.exe" -Destination "C:\Program Files\kubectl" -force
+    add_to_path("C:\Program Files\kubectl")
+    $Global:NEEDS_REBOOT = $true
+    log "Install/update completed for: kubectl"
+  }
+
+  #-- helm
+  log "Checking for external dependency: helm"
+  if( -not (get-command helm -erroraction 'silentlycontinue') -or $Global:FORCE) {
+    log "Installing/updating external dependency: helm"
+    $helm_url = ((Invoke-WebRequest https://github.com/kubernetes/helm -UseBasicParsing).Links.OuterHTML | Where-Object{$_ -match 'windows-amd64.tar.gz'} | Select-Object -first 1).Split('"')[1]
+    log "Helm URL : $helm_url"
+    $helm_file = $helm_url.Split("/")[-1]
+    log "Helm File: $helm_file"
+    Invoke-WebRequest $helm_url -UseBasicParsing -outfile "$helm_file"
+    mkdir "C:\Program Files\helm" -ErrorAction SilentlyContinue
+    if (-not (Get-Command Expand-7Zip -ErrorAction Ignore)) {
+        Install-Package -Scope CurrentUser -Force 7Zip4PowerShell > $null
+    }
+    Expand-7Zip $helm_file .
+    $tar_file = $helm_file.Replace('.gz','')
+    Expand-7Zip $tar_file "C:\Program Files\helm"
+    Remove-Item $helm_file -erroraction 'silentlycontinue'
+    Remove-Item $tar_file  -erroraction 'silentlycontinue'
+    add_to_path("C:\Program Files\helm\windows-amd64")
+    $Global:NEEDS_REBOOT = $true
+    log "Install/update completed for: helm"
+  }
+}
+
+#------------------------------------------------------------------------------
+#-- Add a dir to the system path
+function add_to_path {
+  Param($path)
+  # Directly edit the registery to add kubectl to PATH. Will require a restart to stick.
+  $regPath = "HKLM:\SYSTEM\CurrentControlSet\Control\Session Manager\Environment"
+  $value = (Get-ItemProperty $regPath -Name Path).Path
+  if ( -not ($value -match [Regex]::Escape("$path") )) {
+    log "Adding $path to PATH"
+    $newValue = "$value;$path"
+    Set-ItemProperty -Path $regPath -Name Path -Value $newValue | Out-Null
+  }  
+}
+
+#------------------------------------------------------------------------------
+#-- Install Bluemix CLI.
+function install_bx() {
+  if( get-command bx -erroraction 'silentlycontinue') {
+      Write-Output "bx already installed"
+      bx update
+  } else {
+    log "Installing IBM Cloud 'bx' CLI for Windows..."
+    $url = $Global:IDT_INSTALL_BMX_URL + "/powershell"
+    log "Downloading and installing IBM Cloud 'bx' CLI from: $url" 
+    Invoke-Expression(New-Object Net.WebClient).DownloadString( $url )
+    $Global:NEEDS_REBOOT = $true
+  }
+  log "IBM Cloud CLI version:"
+  C:\"Program Files"\IBM\Bluemix\bin\bx.exe --version
+}
+
+#------------------------------------------------------------------------------
+#-- Install Bluemix CLI Plugins.
+function install_plugins {
+  log "Installing/updating IBM Cloud CLI plugins used by IDT..."
+  $plugins = "Cloud-Functions",
+             "container-registry",
+             "container-service",
+             "dev",
+             "schematics",
+             "sdk-gen"
+  $pluginlist = C:\"Program Files"\IBM\Bluemix\bin\bx.exe plugin list
+  Foreach ($plugin in $plugins) {
+    log "Checking status of plugin: $plugin"
+    if($pluginlist -match "\b$plugin\b") {
+        log "Updating plugin '$plugin'"
+        C:\"Program Files"\IBM\Bluemix\bin\bx.exe plugin update -r $Global:IDT_INSTALL_BMX_REPO_NAME $plugin
+    } else {
+        log "Installing plugin '$plugin'"
+        C:\"Program Files"\IBM\Bluemix\bin\bx.exe plugin install -r $Global:IDT_INSTALL_BMX_REPO_NAME $plugin
+    }
+  }
+  log "Running 'bx plugin list'..."
+  C:\"Program Files"\IBM\Bluemix\bin\bx.exe plugin list
+  log "Finished installing/updating plugins"
+}
+
+#------------------------------------------------------------------------------
+#-- Create "idt" script to act as shortcut to "bx dev"
+function env_setup() {
+  Write-Output "Creating 'idt' script to act as shortcut to 'bx dev' command..."
+  $idt_batch = @"
+@ECHO OFF
+REM #-----------------------------------------------------------
+REM # IBM Cloud Developer Tools (IDT), version 1.2.0
+REM # Wrapper for the 'bx dev' command, and external helpers.
+REM #-----------------------------------------------------------
+REM # Syntax:
+REM #   idt                               - Run 'bx dev <args>'
+REM #   idt update    [--trace] [--force] - Update IDT and deps
+REM #   idt uninstall [--trace]           - Uninstall IDT
+REM #-----------------------------------------------------------
+IF "%1"=="update" (
+  echo Updating IBM Cloud Developer Tools CLI...
+  PowerShell -NoProfile -ExecutionPolicy Unrestricted -Command "& {Start-Process PowerShell -ArgumentList '-NoProfile -ExecutionPolicy Unrestricted ""iex(New-Object Net.WebClient).DownloadString(""""http://ibm.biz/idt-win-installer"""")"" ""%2"" ""%3"" ' -Verb RunAs}"
+) ELSE IF "%1"=="uninstall" (
+  echo Uninstalling IBM Cloud Developer Tools CLI...
+  PowerShell -NoProfile -ExecutionPolicy Unrestricted -Command "& {Start-Process PowerShell -ArgumentList '-NoProfile -ExecutionPolicy Unrestricted ""iex(New-Object Net.WebClient).DownloadString(""""http://ibm.biz/idt-win-installer"""")"" ""uninstall"" ""%2"" ' -Verb RunAs}"
+  echo IDT and IBM Cloud CLI have been removed.
+) ELSE (
+  bx dev %*
+)
+REM #-----------------------------------------------------------
+"@
+  Write-Output $idt_batch | Out-File -Encoding ascii "C:\Program Files\IBM\Bluemix\bin\idt.bat"
+}
+
+#------------------------------------------------------------------------------
+# MAIN
+#------------------------------------------------------------------------------
+function main {
+  log "--==[ $Global:PROG, v$Global:VERSION ]==--"
+  $Global:SECS = (Get-Date)
+
+  #-- Check for Windows 10
+  if ([System.Environment]::OSVersion.Version.Major -lt 10) {
+    error "This installer requires Windows 10 or higher."
+  }
+
+  #-- Check for 64-bit Platform - Dev and Helm do not have 32-bit versions.
+  if ([Environment]::Is64BitProcess -ne [Environment]::Is64BitOperatingSystem) {
+    error "This installer requires 64-bit Windows."
+  }
+
+  If(-NOT ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole(`
+    [Security.Principal.WindowsBuiltInRole] "Administrator")) {
+      error "This script must be run as Administrator. Re-run this script as an Administrator!"
+  }
+
+  #-- Running as admin defaults to system32 change to home directory.
+  Set-Location ~
+
+  $ACTION="install"
+
+  #-- Parse args
+  foreach ($arg in $args) {
+    switch -exact ($arg) {
+      "--trace" {
+        warn "Enabling verbose tracing of all activity"
+        Set-PSDebug -Trace 1
+      }
+      "--force" {
+        $Global:FORCE=$true
+        warn "Forcing updates for all dependencies and other settings"
+      }
+      "update"    { $ACTION = "install" }
+      "install"   { $ACTION = "install" }
+      "uninstall" { $ACTION = "uninstall" }
+      "help"      { $ACTION = "help" }
+      default     { $ACTION = "help" }
+    }
+  }
+
+  switch -exact ($ACTION) {
+    "install"   { install }
+    "uninstall" { uninstall }
+    default     { help }
+  }
+
+  quit
+}
+
+#------------------------------------------------------------------------------
+#-- Kick things off
+#------------------------------------------------------------------------------
+main $args
+
+#------------------------------------------------------------------------------
+# EOF
+#------------------------------------------------------------------------------
