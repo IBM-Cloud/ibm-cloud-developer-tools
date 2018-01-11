@@ -414,6 +414,7 @@ function main {
       FORCE=true
       warn "Forcing updates for all dependencies and other settings"
       ;;
+    "update")     ACTION="install";;
     "install")    ACTION="install";;
     "uninstall")  ACTION="uninstall";;
     *)            ACTION="help";;
