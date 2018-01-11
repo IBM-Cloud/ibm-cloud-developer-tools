@@ -417,7 +417,7 @@ function main {
     "update")     ACTION="install";;
     "install")    ACTION="install";;
     "uninstall")  ACTION="uninstall";;
-    *)            ACTION="help";;
+    "help")       ACTION="help";;
     esac
     shift
   done
