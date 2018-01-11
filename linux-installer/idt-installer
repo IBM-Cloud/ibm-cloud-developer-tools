@@ -72,12 +72,11 @@ function prompt {
   label=${1}
   default=${2}
   if [[ -z $default ]]; then
-    echo -en "${label}: ${CYN}" > /dev/tty
+    prompt="${label}: "
   else
-    echo -en "${label} [$default]: ${CYN}"  > /dev/tty
+    prompt="${label} [$default]: "
   fi
-  read -r
-  echo -e "${NRM}"  > /dev/tty
+  read -p "$prompt" -r
   #-- Use $REPLY to get user's input
 }
 
