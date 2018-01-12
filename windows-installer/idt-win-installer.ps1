@@ -288,7 +288,6 @@ if defined action (
   Powershell -NoProfile -ExecutionPolicy Unrestricted -Command "Invoke-WebRequest 'http://ibm.biz/idt-win-installer' -UseBasicParsing -outfile '%ifile%'"
   echo Calling: %ifile% %*
   PowerShell -NoProfile -ExecutionPolicy Unrestricted -Command "& {Start-Process PowerShell -ArgumentList '-NoProfile -ExecutionPolicy Unrestricted -File %ifile% %*' -Verb RunAs}"
-  echo IDT %action% completed.
 ) else (
   bx dev %*
 )
