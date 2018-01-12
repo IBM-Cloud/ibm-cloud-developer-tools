@@ -327,7 +327,6 @@ function main {
 
   #-- Parse args
   foreach ($arg in $args) {
-    echo "|$arg|"
     switch -exact ($arg) {
       "--trace" {
         warn "Enabling verbose tracing of all activity"
@@ -344,8 +343,6 @@ function main {
       default     { warn "Undefined Arg: $arg" }
     }
   }
-echo $ACTION
-pause
   switch -exact ($ACTION) {
     "install"   { install }
     "uninstall" { uninstall }
