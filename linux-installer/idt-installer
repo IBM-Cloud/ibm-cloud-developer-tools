@@ -68,15 +68,17 @@ function error {
   exit -1
 }
 
+
 function prompt {
   label=${1}
   default=${2}
   if [[ -z $default ]]; then
-    prompt="${label}: "
+    echo -en "${label}: ${CYN}" > /dev/tty
   else
-    prompt="${label} [$default]: "
+    echo -en "${label} [$default]: ${CYN}"  > /dev/tty
   fi
-  read -p "$prompt" -r
+  read -r
+  echo -e "${NRM}"  > /dev/tty
   #-- Use $REPLY to get user's input
 }
 
