@@ -278,14 +278,17 @@ REM #   idt                               - Run 'bx dev <args>'
 REM #   idt update    [--trace] [--force] - Update IDT and deps
 REM #   idt uninstall [--trace]           - Uninstall IDT
 REM #-----------------------------------------------------------
-IF "%1"=="update" (
-  echo Updating IBM Cloud Developer Tools CLI...
-  PowerShell -NoProfile -ExecutionPolicy Unrestricted -Command "& {Start-Process PowerShell -ArgumentList '-NoProfile -ExecutionPolicy Unrestricted ""iex(New-Object Net.WebClient).DownloadString(""""http://ibm.biz/idt-win-installer"""")"" ""%2"" ""%3"" ' -Verb RunAs}"
-) ELSE IF "%1"=="uninstall" (
-  echo Uninstalling IBM Cloud Developer Tools CLI...
-  PowerShell -NoProfile -ExecutionPolicy Unrestricted -Command "& {Start-Process PowerShell -ArgumentList '-NoProfile -ExecutionPolicy Unrestricted ""iex(New-Object Net.WebClient).DownloadString(""""http://ibm.biz/idt-win-installer"""")"" ""uninstall"" ""%2"" ' -Verb RunAs}"
-  echo IDT and IBM Cloud CLI have been removed.
-) ELSE (
+set "action="
+if "%1"=="update"    set action="update"
+if "%1"=="uninstall" set action="uninstall"
+if defined action (
+  echo IDT launcher action: %action%
+  set ifile="%temp%\idt-win-installer.ps1"
+  echo Fetching latest installer to: %ifile%
+  Powershell -NoProfile -ExecutionPolicy Unrestricted -Command "Invoke-WebRequest 'http://ibm.biz/idt-win-installer' -UseBasicParsing -outfile '%ifile%'"
+  echo Calling: %ifile% %*
+  PowerShell -NoProfile -ExecutionPolicy Unrestricted -Command "& {Start-Process PowerShell -ArgumentList '-NoProfile -ExecutionPolicy Unrestricted -File %ifile% %*' -Verb RunAs}"
+) else (
   bx dev %*
 )
 REM #-----------------------------------------------------------
@@ -335,10 +338,9 @@ function main {
       "install"   { $ACTION = "install" }
       "uninstall" { $ACTION = "uninstall" }
       "help"      { $ACTION = "help" }
-      default     { $ACTION = "help" }
+      default     { warn "Undefined Arg: $arg" }
     }
   }
-
   switch -exact ($ACTION) {
     "install"   { install }
     "uninstall" { uninstall }
