@@ -347,6 +347,8 @@ function env_setup {
           -e '/^alias idt-update=/d' \
           -e '/^alias idt-uninstall=/d' \
           ${env_file}
+    warn "Please restart your shell so old 'idt' alias does not get picked up!"
+    warn "Symptom is: running 'idt update' results in 'update is not a defined command."
   fi
 
   if [[ "$1" == "add" ]]; then    
@@ -369,7 +371,7 @@ function env_setup {
 				  ;;
 				"uninstall")
 				  echo "Uninstalling IBM Cloud Developer Tools (IDT) CLI..."
-				  curl -sL $INSTALLER_URL | bash -s -- uninstall \$*
+				  curl -sL $INSTALLER_URL | bash -s -- \$*
 				  ;;
 				*)
 				  bx dev \$*
