@@ -7,7 +7,7 @@
 # Copyright (c) 2018, International Business Machines. All Rights Reserved.
 #------------------------------------------------------------------------------
 
-VERSION="1.2.0"
+VERSION="1.2.2"
 PROG="IBM Cloud Developer Tools for Linux/MacOS - Installer"
 INSTALLER_URL="https://ibm.biz/idt-installer"
 GIT_URL="https://github.com/IBM-Cloud/ibm-cloud-developer-tools"
@@ -351,12 +351,14 @@ function env_setup {
     warn "Symptom is: running 'idt update' results in 'update is not a defined command'."
   fi
 
-  if [[ "$1" == "add" ]]; then    
-    if [[ ! -f "$idt_prog" || "$FORCE" == true ]]; then
+  if [[ "$1" == "add" ]]; then
+    idt_launch_ver=$(grep "# Version:" /usr/local/bin/idt 2>/dev/null | cut -d':' -f2)
+    if [[ ! -f "$idt_prog" || "$FORCE" == true || "$idt_launch_ver}" != "$VERSION" ]]; then
       cat <<-!!EOF > ~/idt
 				#!/bin/bash
 				#-----------------------------------------------------------
-				# IBM Cloud Developer Tools (IDT), version ${VERSION}
+				# IBM Cloud Developer Tools (IDT)
+				# Version:${VERSION}
 				# Wrapper for the 'bx dev' command, and external helpers.
 				#-----------------------------------------------------------
 				# Syntax:
@@ -367,7 +369,7 @@ function env_setup {
 				if [[ "\$1" == "update" || "\$1" == "uninstall" ]]; then
 				  echo "IDT launcher action: \$1"
 				  tmp=\$(mktemp -d 2>/dev/null || mktemp -d -t 'idttmpdir')
-          echo "Fetching latest installer to: \$tmp/idt-installer"
+				  echo "Fetching latest installer to: \$tmp/idt-installer"
 				  curl -sL https://ibm.biz/idt-installer -o \$tmp/idt-installer
 				  bash -- \$tmp/idt-installer \$*
 				  rm -r \$tmp
