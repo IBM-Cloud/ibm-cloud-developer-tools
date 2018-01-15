@@ -348,7 +348,7 @@ function env_setup {
           -e '/^alias idt-uninstall=/d' \
           ${env_file}
     warn "Please restart your shell so old 'idt' alias does not get picked up!"
-    warn "Symptom is: running 'idt update' results in 'update is not a defined command."
+    warn "Symptom is: running 'idt update' results in 'update is not a defined command'."
   fi
 
   if [[ "$1" == "add" ]]; then    
@@ -364,18 +364,15 @@ function env_setup {
 				#   idt update    [--trace] [--force] - Update IDT and deps
 				#   idt uninstall [--trace]           - Uninstall IDT
 				#-----------------------------------------------------------
-				case "\$1" in
-				"update")
-				  echo "Updating IBM Cloud Developer Tools (IDT) CLI..."
-				  curl -sL $INSTALLER_URL | bash -s -- \$*
-				  ;;
-				"uninstall")
-				  echo "Uninstalling IBM Cloud Developer Tools (IDT) CLI..."
-				  curl -sL $INSTALLER_URL | bash -s -- \$*
-				  ;;
-				*)
-				  bx dev \$*
-				esac
+				if [[ "$1" == "update" || "$1" == "uninstall" ]]; then
+				  echo "IDT launcher action: $1"
+				  tmp=`mktemp -d 2>/dev/null || mktemp -d -t 'idttmpdir'`
+				  curl -sL https://ibm.biz/idt-installer -o $tmp/idt-installer
+				  bash -- $tmp/idt-installer $*
+				  rm -r $tmp
+				else
+				  bx dev $*
+				fi
 				#-----------------------------------------------------------
 			!!EOF
       $SUDO mv ~/idt $idt_prog
