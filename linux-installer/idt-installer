@@ -364,15 +364,15 @@ function env_setup {
 				#   idt update    [--trace] [--force] - Update IDT and deps
 				#   idt uninstall [--trace]           - Uninstall IDT
 				#-----------------------------------------------------------
-				if [[ "$1" == "update" || "$1" == "uninstall" ]]; then
-				  echo "IDT launcher action: $1"
+				if [[ "\$1" == "update" || "\$1" == "uninstall" ]]; then
+				  echo "IDT launcher action: \$1"
 				  tmp=`mktemp -d 2>/dev/null || mktemp -d -t 'idttmpdir'`
           echo "Fetching latest installer to: $tmp/idt-installer"
 				  curl -sL https://ibm.biz/idt-installer -o $tmp/idt-installer
-				  bash -- $tmp/idt-installer $*
+				  bash -- $tmp/idt-installer \$*
 				  rm -r $tmp
 				else
-				  bx dev $*
+				  bx dev \$*
 				fi
 				#-----------------------------------------------------------
 			!!EOF
