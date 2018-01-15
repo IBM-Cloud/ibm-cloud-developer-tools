@@ -172,7 +172,7 @@ function install_deps {
 
     #-- Xcode and Cocoapods
     log "Checking if Xcode is installed"
-    if [[ -z "$(ls -d /Applications/Xcode*.zpp 2>/dev/null)" ]]; then
+    if [[ -z "$(ls -d /Applications/Xcode*.app 2>/dev/null)" ]]; then
       warn "Xcode does not appear to be installed on this system."
     fi
     log "Installing/updating external dependency: cocoapods"
