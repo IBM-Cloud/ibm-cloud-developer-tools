@@ -292,7 +292,7 @@ function install_bx {
     esac
     log "IBM Cloud 'bx' CLI install finished."
   else #-- Upgrade
-    log "Updating exisitng IBM Cloud 'bx' CLI..."
+    log "Updating existing IBM Cloud 'bx' CLI..."
     bx update
   fi
   log "Running 'bx --version'..."
