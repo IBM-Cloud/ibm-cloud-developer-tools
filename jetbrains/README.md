@@ -24,6 +24,7 @@ Notice: This helper is provided "as-is". IBM does not explicitly endorse, nor su
 Note: You must have previously [installed](../README.md) the IBM Developer Tools CLI.
 
 1. Download the [idt-jetbrains-settings.jar](https://github.com/IBM-Cloud/ibm-cloud-developer-tools/raw/master/jetbrains/idt-jetbrains-settings.jar) file
+    - Note: Do NOT click the actual jar file listed above to download.  This will not work.  Use the link shown.
 1. Open your preferred [Jetbrains IDE](https://www.jetbrains.com)
 1. Select `File` > `Import Settings`, then locate and pick the downloaded *idt-jetbrains-settings.jar* file.
 
