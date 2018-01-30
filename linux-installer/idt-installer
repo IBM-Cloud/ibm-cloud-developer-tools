@@ -127,8 +127,12 @@ function uninstall {
 
 #------------------------------------------------------------------------------
 function install {
-  log "Starting Full Installation..."
-
+  if [[ -n "$(which idt)" ]]; then
+    log "Starting Installation..."
+  else
+    log "Starting Update..."
+  fi
+  
   #-- Check if internal IBM setup
   if [[ -n "$(which bx)" ]]; then
     read -r repo url <<< $(bx plugin repos | grep stage1)
