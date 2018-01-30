@@ -7,7 +7,7 @@
 # Copyright (c) 2018, International Business Machines. All Rights Reserved.
 #------------------------------------------------------------------------------
 
-VERSION="1.2.2"
+VERSION="1.2.3"
 PROG="IBM Cloud Developer Tools for Linux/MacOS - Installer"
 INSTALLER_URL="https://ibm.biz/idt-installer"
 GIT_URL="https://github.com/IBM-Cloud/ibm-cloud-developer-tools"
