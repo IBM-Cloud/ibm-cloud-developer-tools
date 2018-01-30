@@ -353,7 +353,7 @@ function env_setup {
 
   if [[ "$1" == "add" ]]; then
     idt_launch_ver=$(grep "# Version:" /usr/local/bin/idt 2>/dev/null | cut -d':' -f2)
-    if [[ ! -f "$idt_prog" || "$FORCE" == true || "$idt_launch_ver}" != "$VERSION" ]]; then
+    if [[ ! -f "$idt_prog" || "$FORCE" == true || "${idt_launch_ver}" != "$VERSION" ]]; then
       cat <<-!!EOF > ~/idt
 				#!/bin/bash
 				#-----------------------------------------------------------
