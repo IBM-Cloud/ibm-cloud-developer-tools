@@ -303,7 +303,7 @@ function install_bx {
 function install_plugins {
   #-- BX plugins to process
   PLUGINS=(
-    "Cloud-Functions"
+    "cloud-functions"
     "container-registry"
     "container-service"
     "dev"
