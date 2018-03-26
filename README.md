@@ -46,7 +46,7 @@ Access the [Windows-specific readme](./windows-installer/README.md) for addition
 
 ## 3rd Party IDE Extensions
 
-The following IDE extensions are available to enable access to IDT CLI directly from eithin the IDE.
+The following IDE extensions are available to enable access to IDT CLI directly from within the IDE.
 
 - [Visual Studio Code](https://code.visualstudio.com/) editor - [IBM Developer Tools extension](https://marketplace.visualstudio.com/items?itemName=IBM.ibm-developer)
 - [Jetbrains](https://www.jetbrains.com) based IDEs (IntelliJ, WebStorm, Android Studio, etc) - [External Tools Settings](./jetbrains)
