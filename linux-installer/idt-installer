@@ -311,7 +311,6 @@ function install_plugins {
     "container-registry"
     "container-service"
     "dev"
-    "schematics"
     "sdk-gen"
   )
 

@@ -246,7 +246,6 @@ function install_plugins {
              "container-registry",
              "container-service",
              "dev",
-             "schematics",
              "sdk-gen"
   $pluginlist = C:\"Program Files"\IBM\Bluemix\bin\bx.exe plugin list
   Foreach ($plugin in $plugins) {
