@@ -198,7 +198,7 @@ function install_deps {
       curl --progress-bar -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/darwin/amd64/kubectl
       $SUDO mv ./kubectl /usr/local/bin/kubectl
       $SUDO chmod +x /usr/local/bin/kubectl
-      log  "Please review any setup requirements for 'kubsctl' from: https://kubernetes.io/docs/tasks/tools/install-kubectl/"
+      log  "Please review any setup requirements for 'kubectl' from: https://kubernetes.io/docs/tasks/tools/install-kubectl/"
     fi
 
     #-- helm:
