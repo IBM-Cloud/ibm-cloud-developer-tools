@@ -174,16 +174,6 @@ function install_deps {
       brew update
     fi
 
-    #-- Xcode and Cocoapods
-    log "Checking if Xcode is installed"
-    if [[ -z "$(ls -d /Applications/Xcode*.app 2>/dev/null)" ]]; then
-      warn "Xcode does not appear to be installed on this system."
-    fi
-    log "Installing/updating external dependency: cocoapods"
-    if [[ -z "$(gem list --local | grep "^cocoapods ")" || "$FORCE" == true ]]; then
-      $SUDO gem install cocoapods
-    fi
-
     #-- GIT:
     log "Installing/updating external dependency: git"
     if [[ -z "$(which git)" ]]; then
@@ -202,13 +192,13 @@ function install_deps {
       brew upgrade docker
     fi
 
-    #-- kubectl:
+     #-- kubectl:
     log "Installing/updating external dependency: kubectl"
-    if [[ -z "$(which kubectl)" ]]; then
-      brew install kubectl
+    if [[ -z "$(which kubectl)" || "$FORCE" == true ]]; then
+      curl --progress-bar -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/darwin/amd64/kubectl
+      $SUDO mv ./kubectl /usr/local/bin/kubectl
+      $SUDO chmod +x /usr/local/bin/kubectl
       log  "Please review any setup requirements for 'kubectl' from: https://kubernetes.io/docs/tasks/tools/install-kubectl/"
-    elif [[ "$FORCE" == true ]]; then
-      brew upgrade kubectl
     fi
 
     #-- helm:
