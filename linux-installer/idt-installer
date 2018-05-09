@@ -186,10 +186,10 @@ function install_deps {
     #-- Docker:
     log "Installing/updating external dependency: docker"
     if [[ -z "$(which docker)" ]]; then
-      brew install docker
+      brew cask install docker
       log  "Please review any setup requirements for 'docker' from: https://docs.docker.com/engine/installation/"
     elif [[ "$FORCE" == true ]]; then
-      brew upgrade docker
+      brew cask reinstall docker
     fi
 
      #-- kubectl:
