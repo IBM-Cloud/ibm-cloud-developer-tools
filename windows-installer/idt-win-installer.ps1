@@ -146,11 +146,12 @@ function install() {
 #-- Install dependencies - git, docker, kubectl, helm.
 function install_deps() {
 
+  [Net.ServicePointManager]::SecurityProtocol = "Tls12, Tls11, Tls, Ssl3"
+
   #-- git
   log "Checking for external dependency: git"
   if( -not (get-command git -erroraction 'silentlycontinue') -or $Global:FORCE) {
-    [Net.ServicePointManager]::SecurityProtocol = "Tls12, Tls11, Tls, Ssl3"
-
+    
     log "Installing/updating external dependency: git"
     $gitVersion = (Invoke-WebRequest "https://git-scm.com/downloads/latest" -UseBasicParsing).Content
     Invoke-WebRequest "https://github.com/git-for-windows/git/releases/download/v$gitVersion.windows.1/Git-$gitVersion-64-bit.exe" -UseBasicParsing -outfile "git-installer.exe"
