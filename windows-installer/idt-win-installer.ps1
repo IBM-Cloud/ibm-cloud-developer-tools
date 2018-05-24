@@ -149,10 +149,7 @@ function install_deps() {
   #-- git
   log "Checking for external dependency: git"
   if( -not (get-command git -erroraction 'silentlycontinue') -or $Global:FORCE) {
-    [Net.ServicePointManager]::SecurityProtocol = 
-      [Net.SecurityProtocolType]::Tls12 -bor `
-      [Net.SecurityProtocolType]::Tls11 -bor `
-      [Net.SecurityProtocolType]::Tls
+    [Net.ServicePointManager]::SecurityProtocol = "Tls12, Tls11, Tls, Ssl3"
 
     log "Installing/updating external dependency: git"
     $gitVersion = (Invoke-WebRequest "https://git-scm.com/downloads/latest" -UseBasicParsing).Content
