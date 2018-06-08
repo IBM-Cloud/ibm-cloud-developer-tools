@@ -119,7 +119,7 @@ function install() {
 
   #-- Check if internal IBM setup
   if( get-command bx -erroraction 'silentlycontinue' ) {
-    $pluginlist = C:\"Program Files"\IBM\Bluemix\bin\bx.exe plugin list
+    $pluginlist = C:\"Program Files"\IBM\Cloud\bin\bx.exe plugin list
     if($pluginlist -match "\bstage\b") {
       Write-Output
       $reply = Read-Host -Prompt "Use IBM internal repos for install/updates (Y/n)?"
@@ -238,7 +238,7 @@ function install_bx() {
     $Global:NEEDS_REBOOT = $true
   }
   log "IBM Cloud CLI version:"
-  C:\"Program Files"\IBM\Bluemix\bin\bx.exe --version
+  C:\"Program Files"\IBM\Cloud\bin\bx.exe --version
 }
 
 #------------------------------------------------------------------------------
@@ -250,19 +250,19 @@ function install_plugins {
              "container-service",
              "dev",
              "sdk-gen"
-  $pluginlist = C:\"Program Files"\IBM\Bluemix\bin\bx.exe plugin list
+  $pluginlist = C:\"Program Files"\IBM\Cloud\bin\bx.exe plugin list
   Foreach ($plugin in $plugins) {
     log "Checking status of plugin: $plugin"
     if($pluginlist -match "\b$plugin\b") {
         log "Updating plugin '$plugin'"
-        C:\"Program Files"\IBM\Bluemix\bin\bx.exe plugin update -r $Global:IDT_INSTALL_BMX_REPO_NAME $plugin
+        C:\"Program Files"\IBM\Cloud\bin\bx.exe plugin update -r $Global:IDT_INSTALL_BMX_REPO_NAME $plugin
     } else {
         log "Installing plugin '$plugin'"
-        C:\"Program Files"\IBM\Bluemix\bin\bx.exe plugin install -r $Global:IDT_INSTALL_BMX_REPO_NAME $plugin
+        C:\"Program Files"\IBM\Cloud\bin\bx.exe plugin install -r $Global:IDT_INSTALL_BMX_REPO_NAME $plugin
     }
   }
   log "Running 'bx plugin list'..."
-  C:\"Program Files"\IBM\Bluemix\bin\bx.exe plugin list
+  C:\"Program Files"\IBM\Cloud\bin\bx.exe plugin list
   log "Finished installing/updating plugins"
 }
 
@@ -296,7 +296,7 @@ if defined action (
 )
 REM #-----------------------------------------------------------
 "@
-  Write-Output $idt_batch | Out-File -Encoding ascii "C:\Program Files\IBM\Bluemix\bin\idt.bat"
+  Write-Output $idt_batch | Out-File -Encoding ascii "C:\Program Files\IBM\Cloud\bin\idt.bat"
 }
 
 #------------------------------------------------------------------------------
