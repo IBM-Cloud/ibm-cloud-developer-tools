@@ -296,7 +296,7 @@ if defined action (
 )
 REM #-----------------------------------------------------------
 "@
-  Write-Output $idt_batch | Out-File -Encoding ascii "C:\Program Files\IBM\Bluemix\bin\idt.bat"
+  Write-Output $idt_batch | Out-File -Encoding ascii "C:\Program Files\IBM\Cloud\bin\idt.bat"
 }
 
 #------------------------------------------------------------------------------
