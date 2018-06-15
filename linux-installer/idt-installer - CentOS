@@ -9,7 +9,8 @@
 
 #---------------------------------------------------
 # TODO:
-# Install dependencies: brew, k8s, git, docker;
+# Install dependencies: brew, k8s, git, docker{
+# brew: https://github.com/Linuxbrew/brew/wiki/CentOS6
 # Install plugins: 
 # Change package manager to yum
 # Configure epel repositories
@@ -183,7 +184,22 @@ function install_deps {
       log "Updating 'brew'..."
       brew update
     fi
-
+	
+    #-- check installation brew centos
+	#-- Set $PLATFORM to  $(cat /etc/os-release)
+	case "$PLATFORM" in
+  "CentOS")
+    log "Checking for external dependency: brew"
+    if [[ -z "$(which brew)" && -n "$(which ruby)" ]]; then
+      log "'brew' installer not found, attempting to install..."
+	  sh -c "$(curl -fsSL https://raw.githubusercontent.com/Linuxbrew/install/master/install.sh)"
+      log "'brew' installation completed."
+    fi
+    if [[ "$FORCE" == true ]]; then
+      log "Updating 'brew'..."
+      brew update
+    fi
+	
     #-- GIT:
     log "Installing/updating external dependency: git"
     if [[ -z "$(which git)" ]]; then
