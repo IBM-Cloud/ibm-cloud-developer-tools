@@ -11,7 +11,7 @@
 # TODO:
 # Install dependencies: brew, k8s, git, docker{
 # brew: https://github.com/Linuxbrew/brew/wiki/CentOS6
-# Install plugins: 
+# Install plugins:
 # Change package manager to yum
 # Configure epel repositories
 # Change default directories for installation
@@ -48,7 +48,7 @@ function help {
   4. Defines 'idt' shortcut to improve useability.
       - idt           : Shortcut for normal "bx dev" command
       - idt update    : Runs this installer checking for and installing any updates
-      - idt uninstall : Uninstalls IDT, 'bx' cli, and all plugins  
+      - idt uninstall : Uninstalls IDT, 'bx' cli, and all plugins
 
   Chat with us on Slack: ${SLACK_URL}, channel #developer-tools
   Submit any issues to : ${GIT_URL}/issues
@@ -144,7 +144,7 @@ function install {
   else
     log "Starting Update..."
   fi
-  
+
   #-- Check if internal IBM setup
   if [[ -n "$(which bx)" ]]; then
     read -r repo url <<< $(bx plugin repos | grep stage1)
@@ -184,8 +184,8 @@ function install_deps {
       log "Updating 'brew'..."
       brew update
     fi
-	
-    #-- check installation brew centos
+
+  #-- check installation brew centos
 	#-- Set $PLATFORM to  $(cat /etc/os-release)
 	case "$PLATFORM" in
   "CentOS")
@@ -199,7 +199,7 @@ function install_deps {
       log "Updating 'brew'..."
       brew update
     fi
-	
+
     #-- GIT:
     log "Installing/updating external dependency: git"
     if [[ -z "$(which git)" ]]; then
@@ -248,6 +248,18 @@ function install_deps {
     fi
     $SUDO add-apt-repository -y ppa:git-core/ppa
     $SUDO apt-get -y update
+
+    if [[ -z "$(which yum)" ]]; then
+      error "yum not found"
+    fi
+    if [[ -z "$(yum-config-manager)" ]]; then
+      error "yum-config-manager not found"
+    fi
+    $SUDO yum update
+    # install epel repo:
+    # wget http://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
+    # rpm -ivh epel-release-latest-7.noarch.rpm
+
 
     #-- CURL:
     log "Installing/updating external dependency: curl"
