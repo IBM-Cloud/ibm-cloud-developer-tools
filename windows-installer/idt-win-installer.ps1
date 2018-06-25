@@ -118,17 +118,21 @@ function install() {
   log "Starting Installation/Update..."
 
   #-- Check if internal IBM setup
-  if( get-command bx -erroraction 'silentlycontinue' ) {
-    $pluginlist = C:\"Program Files"\IBM\Bluemix\bin\bx.exe plugin list
-    if($pluginlist -match "\bstage\b") {
-      Write-Output
-      $reply = Read-Host -Prompt "Use IBM internal repos for install/updates (Y/n)?"
-      Write-Output
-      if($reply -match "[Yy]*") {
-        $Global:IDT_INSTALL_BMX_URL="https://clis.stage1.ng.bluemix.net/install"
-        $Global:IDT_INSTALL_BMX_REPO_NAME="stage1"
-        $Global:IDT_INSTALL_BMX_REPO_URL="https://plugins.stage1.ng.bluemix.net"
-      }
+  $bx_command = get-command bx -erroraction 'silentlycontinue'
+  if( $bx_command )  {
+     # The command is set, use it
+  } else {
+    $bx_command = 'C:\"Program Files"\IBM\Bluemix\bin\bx.exe'
+  }
+  $pluginlist = iex "$bx_command plugin list"
+  if($pluginlist -match "\bstage\b") {
+    Write-Output
+    $reply = Read-Host -Prompt "Use IBM internal repos for install/updates (Y/n)?"
+    Write-Output
+    if($reply -match "[Yy]*") {
+      $Global:IDT_INSTALL_BMX_URL="https://clis.stage1.ng.bluemix.net/install"
+      $Global:IDT_INSTALL_BMX_REPO_NAME="stage1"
+      $Global:IDT_INSTALL_BMX_REPO_URL="https://plugins.stage1.ng.bluemix.net"
     }
   }
 
@@ -189,7 +193,7 @@ function install_deps() {
   log "Checking for external dependency: helm"
   if( -not (get-command helm -erroraction 'silentlycontinue') -or $Global:FORCE) {
     log "Installing/updating external dependency: helm"
-	[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+  [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
     $helm_url = ((Invoke-WebRequest https://github.com/kubernetes/helm -UseBasicParsing).Links.OuterHTML | Where-Object{$_ -match 'windows-amd64.tar.gz'} | Select-Object -first 1).Split('"')[1]
     log "Helm URL : $helm_url"
     $helm_file = $helm_url.Split("/")[-1]
@@ -228,17 +232,23 @@ function add_to_path {
 #-- Install Bluemix CLI.
 function install_bx() {
   if( get-command bx -erroraction 'silentlycontinue') {
-      Write-Output "bx already installed"
+      Write-Output "ibmcloud already installed"
       bx update
   } else {
-    log "Installing IBM Cloud 'bx' CLI for Windows..."
+    log "Installing 'ibmcloud' CLI for Windows..."
     $url = $Global:IDT_INSTALL_BMX_URL + "/powershell"
-    log "Downloading and installing IBM Cloud 'bx' CLI from: $url" 
+    log "Downloading and installing 'ibmcloud' CLI from: $url" 
     Invoke-Expression(New-Object Net.WebClient).DownloadString( $url )
     $Global:NEEDS_REBOOT = $true
   }
   log "IBM Cloud CLI version:"
-  C:\"Program Files"\IBM\Bluemix\bin\bx.exe --version
+  $bx_command = get-command bx -erroraction 'silentlycontinue'
+  if( $bx_command )  {
+     # The command is set, use it
+  } else {
+    $bx_command = 'C:\"Program Files"\IBM\Bluemix\bin\bx.exe'
+  }
+  iex "$bx_command --version"
 }
 
 #------------------------------------------------------------------------------
@@ -250,19 +260,27 @@ function install_plugins {
              "container-service",
              "dev",
              "sdk-gen"
-  $pluginlist = C:\"Program Files"\IBM\Bluemix\bin\bx.exe plugin list
+  
+  $bx_command = get-command bx -erroraction 'silentlycontinue'
+  if( $bx_command )  {
+     # The command is set, use it
+  } else {
+    $bx_command = 'C:\"Program Files"\IBM\Bluemix\bin\bx.exe'
+  }
+  $pluginlist = iex "$bx_command plugin list"
+
   Foreach ($plugin in $plugins) {
     log "Checking status of plugin: $plugin"
     if($pluginlist -match "\b$plugin\b") {
         log "Updating plugin '$plugin'"
-        C:\"Program Files"\IBM\Bluemix\bin\bx.exe plugin update -r $Global:IDT_INSTALL_BMX_REPO_NAME $plugin
+        iex "$bx_command plugin update -r $Global:IDT_INSTALL_BMX_REPO_NAME $plugin"
     } else {
         log "Installing plugin '$plugin'"
-        C:\"Program Files"\IBM\Bluemix\bin\bx.exe plugin install -r $Global:IDT_INSTALL_BMX_REPO_NAME $plugin
+        iex "$bx_command plugin install -r $Global:IDT_INSTALL_BMX_REPO_NAME $plugin"
     }
   }
-  log "Running 'bx plugin list'..."
-  C:\"Program Files"\IBM\Bluemix\bin\bx.exe plugin list
+  log "Running 'ibmcloud plugin list'..."
+  iex "$bx_command plugin list"
   log "Finished installing/updating plugins"
 }
 
