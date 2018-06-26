@@ -103,8 +103,8 @@ function uninstall() {
   Write-Output ""
   if($reply -match "[Yy]") {
     log "Uninstalling IDT..."
-    log "Deleting: C:\Program Files\IBM\Bluemix"
-    Remove-Item -Recurse -Force "C:\Program Files\IBM\Bluemix" -erroraction 'silentlycontinue' 
+    log "Deleting: C:\Program Files\IBM\Cloud"
+    Remove-Item -Recurse -Force "C:\Program Files\IBM\Cloud" -erroraction 'silentlycontinue' 
     log "Deleting: ~/.bluemix"
     Remove-Item -Recurse -Force ~/.bluemix -erroraction 'silentlycontinue' 
     log "Uninstall complete."
@@ -122,7 +122,7 @@ function install() {
   if( $bx_command )  {
      # The command is set, use it
   } else {
-    $bx_command = 'C:\"Program Files"\IBM\Bluemix\bin\bx.exe'
+    $bx_command = 'C:\"Program Files"\IBM\Cloud\bin\bx.exe'
   }
   $pluginlist = iex "$bx_command plugin list"
   if($pluginlist -match "\bstage\b") {
@@ -229,7 +229,7 @@ function add_to_path {
 }
 
 #------------------------------------------------------------------------------
-#-- Install Bluemix CLI.
+#-- Install IBM Cloud CLI.
 function install_bx() {
   if( get-command bx -erroraction 'silentlycontinue') {
       Write-Output "ibmcloud already installed"
@@ -246,13 +246,13 @@ function install_bx() {
   if( $bx_command )  {
      # The command is set, use it
   } else {
-    $bx_command = 'C:\"Program Files"\IBM\Bluemix\bin\bx.exe'
+    $bx_command = 'C:\"Program Files (x86)"\IBM\Cloud\bin\bx.exe'
   }
   iex "$bx_command --version"
 }
 
 #------------------------------------------------------------------------------
-#-- Install Bluemix CLI Plugins.
+#-- Install IBM Cloud CLI Plugins.
 function install_plugins {
   log "Installing/updating IBM Cloud CLI plugins used by IDT..."
   $plugins = "Cloud-Functions",
@@ -265,7 +265,7 @@ function install_plugins {
   if( $bx_command )  {
      # The command is set, use it
   } else {
-    $bx_command = 'C:\"Program Files"\IBM\Bluemix\bin\bx.exe'
+    $bx_command = 'C:\"Program Files (x86)"\IBM\Cloud\bin\bx.exe'
   }
   $pluginlist = iex "$bx_command plugin list"
 
@@ -314,7 +314,7 @@ if defined action (
 )
 REM #-----------------------------------------------------------
 "@
-  Write-Output $idt_batch | Out-File -Encoding ascii "C:\Program Files\IBM\Bluemix\bin\idt.bat"
+  Write-Output $idt_batch | Out-File -Encoding ascii "C:\Program Files (x86)\IBM\Cloud\bin\idt.bat"
 }
 
 #------------------------------------------------------------------------------
