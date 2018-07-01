@@ -213,27 +213,59 @@ function install_deps {
 
 
   "Linux")
-    log "Checking for and updating 'apt-get' support on Linux"
-    if [[ -z "$(which apt-get)" ]]; then
-      error "'apt-get' is not found.  Thats the only linux installer I know, sorry."
+	DISTRO=$(lsb_release -is 2>/dev/null || echo "")
+	#Checking if Ubuntu or CentOS
+	if [ "$DISTRO" == Ubuntu ]; then
+		log "Checking for and updating 'apt-get' support on Linux"
+		#if [[ -z "$(which apt-get)" ]]; then
+		#	error "'apt-get' is not found.  Thats the only linux installer I know, sorry."
+		#fi
+		
+		if [[ -z "$(which add-apt-repository)" ]]; then
+			$SUDO apt-get install -y software-properties-common python-software-properties
+		fi
+			$SUDO add-apt-repository -y ppa:git-core/ppa
+			$SUDO apt-get -y update
+		
+		 #-- CURL:
+		log "Installing/updating external dependency: curl"
+		if [[ -z "$(which curl)" || "$FORCE" == true ]]; then
+			$SUDO apt-get -y install curl
+		fi
+		#-- GIT:
+		log "Installing/updating external dependency: git"
+		if [[ -z "$(which git)" || "$FORCE" == true ]]; then
+			$SUDO apt-get -y install git
+			log  "Please review any setup requirements for 'git' from: https://git-scm.com/downloads"
+		fi	
+	fi
+    
+    if [ "$DISTRO" == CentOS ]; then
+		# adding CentOS repository manager 'yum'
+		log "Checking for and updating 'yum' support on Linux"
+		#if [[ -z "$(which yum)" ]]; then
+		#	error "'yum' is not found"
+		#fi
+		#if [[ -z "$(which add-apt-repository)" ]]; then
+		#  $SUDO apt-get install -y software-properties-common python-software-properties
+		#fi
+		#$SUDO add-apt-repository -y ppa:git-core/ppa
+		$SUDO yum -y update
+		
+		#-- CURL:
+		log "Installing/updating external dependency: curl"
+		if [[ -z "$(which curl)" || "$FORCE" == true ]]; then
+			$SUDO yum -y install curl
+		fi
+		#-- GIT:
+		log "Installing/updating external dependency: git"
+		if [[ -z "$(which git)" || "$FORCE" == true ]]; then
+			$SUDO yum -y install git
+			log  "Please review any setup requirements for 'git' from: https://git-scm.com/downloads"
+		fi	
+    
     fi
-    if [[ -z "$(which add-apt-repository)" ]]; then
-      $SUDO apt-get install -y software-properties-common python-software-properties
-    fi
-    $SUDO add-apt-repository -y ppa:git-core/ppa
-    $SUDO apt-get -y update
-
-    #-- CURL:
-    log "Installing/updating external dependency: curl"
-    if [[ -z "$(which curl)" || "$FORCE" == true ]]; then
-      $SUDO apt-get -y install curl
-    fi
-    #-- GIT:
-    log "Installing/updating external dependency: git"
-    if [[ -z "$(which git)" || "$FORCE" == true ]]; then
-      $SUDO apt-get -y install git
-      log  "Please review any setup requirements for 'git' from: https://git-scm.com/downloads"
-    fi
+    
 
     #-- Docker:
     log "Installing/updating external dependency: docker"
@@ -425,7 +457,11 @@ function main {
     # Linux distro, e.g "Ubuntu", "RedHatEnterpriseWorkstation", "RedHatEnterpriseServer", "CentOS", "Debian"
     DISTRO=$(lsb_release -is 2>/dev/null || echo "")
     if [ "$DISTRO" != Ubuntu ]; then
-      warn "Linux has only been tested on Ubuntu, please let us know if you use this utility on other Distros"
+      warn "Linux has only been tested on Ubuntu and CentOS, please let us know if you use this utility on other Distros"
+    fi
+    #adding check to CentOS
+    if ["$DISTRO" != CentOS ]; then
+	  warn "Linux has only been tested on Ubuntu and CentOS, please let us know if you use this utility on other Distros"
     fi
     ;;
   *)
