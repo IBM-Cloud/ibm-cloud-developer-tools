@@ -216,7 +216,7 @@ function install_deps {
 	DISTRO=$(lsb_release -is 2>/dev/null || echo "")
 	#Checking if Ubuntu or CentOS
 	if [ "$DISTRO" == Ubuntu ]; then
-		log "Checking for and updating 'apt-get' support on Linux"
+		log "Checking for and updating 'apt-get' support on Linux Ubuntu"
 		#if [[ -z "$(which apt-get)" ]]; then
 		#	error "'apt-get' is not found.  Thats the only linux installer I know, sorry."
 		#fi
@@ -242,14 +242,10 @@ function install_deps {
     
     if [ "$DISTRO" == CentOS ]; then
 		# adding CentOS repository manager 'yum'
-		log "Checking for and updating 'yum' support on Linux"
+		log "Checking for and updating 'yum' support on Linux CentOS"
 		#if [[ -z "$(which yum)" ]]; then
 		#	error "'yum' is not found"
 		#fi
-		#if [[ -z "$(which add-apt-repository)" ]]; then
-		#  $SUDO apt-get install -y software-properties-common python-software-properties
-		#fi
-		#$SUDO add-apt-repository -y ppa:git-core/ppa
 		$SUDO yum -y update
 		
 		#-- CURL:
