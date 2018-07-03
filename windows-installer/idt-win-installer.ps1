@@ -103,8 +103,8 @@ function uninstall() {
   Write-Output ""
   if($reply -match "[Yy]") {
     log "Uninstalling IDT..."
-    log "Deleting: C:\Program Files (x86)\IBM\Cloud"
-    Remove-Item -Recurse -Force "C:\Program Files (x86)\IBM\Cloud" -erroraction 'silentlycontinue' 
+    log "Deleting: C:\Program Files\IBM\Cloud"
+    Remove-Item -Recurse -Force "C:\Program Files\IBM\Cloud" -erroraction 'silentlycontinue' 
     log "Deleting: ~/.bluemix"
     Remove-Item -Recurse -Force ~/.bluemix -erroraction 'silentlycontinue' 
     log "Uninstall complete."
@@ -122,7 +122,7 @@ function install() {
   if( $bx_command )  {
      # The command is set, use it
   } else {
-    $bx_command = 'C:\"Program Files (x86)"\IBM\Cloud\bin\bx.exe'
+    $bx_command = 'C:\"Program Files"\IBM\Cloud\bin\bx.exe'
   }
   $pluginlist = iex "$bx_command plugin list"
   if($pluginlist -match "\bstage\b") {
@@ -246,7 +246,7 @@ function install_bx() {
   if( $bx_command )  {
      # The command is set, use it
   } else {
-    $bx_command = 'C:\"Program Files (x86)"\IBM\Cloud\bin\bx.exe'
+    $bx_command = 'C:\"Program Files"\IBM\Cloud\bin\bx.exe'
   }
   iex "$bx_command --version"
 }
@@ -265,7 +265,7 @@ function install_plugins {
   if( $bx_command )  {
      # The command is set, use it
   } else {
-    $bx_command = 'C:\"Program Files (x86)"\IBM\Cloud\bin\bx.exe'
+    $bx_command = 'C:\"Program Files"\IBM\Cloud\bin\bx.exe'
   }
   $pluginlist = iex "$bx_command plugin list"
 
@@ -319,7 +319,7 @@ REM #-----------------------------------------------------------
     # The command is set, use it's existing location
   } else {
     # Set to IBM Cloud install location
-    $idt_command = 'C:\"Program Files (x86)"\IBM\Cloud\bin\idt.bat'
+    $idt_command = 'C:\"Program Files"\IBM\Cloud\bin\idt.bat'
   }
   Write-Output $idt_batch | Out-File -Encoding ascii $idt_command
 }
