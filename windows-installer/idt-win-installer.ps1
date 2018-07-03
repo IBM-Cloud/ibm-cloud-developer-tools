@@ -314,7 +314,14 @@ if defined action (
 )
 REM #-----------------------------------------------------------
 "@
-  Write-Output $idt_batch | Out-File -Encoding ascii "C:\Program Files (x86)\IBM\Cloud\bin\idt.bat"
+  $idt_command = get-command idt -erroraction 'silentlycontinue'
+  if( $idt_command )  {
+    # The command is set, use it's existing location
+  } else {
+    # Set to IBM Cloud install location
+    $idt_command = 'C:\"Program Files (x86)"\IBM\Cloud\bin\idt.bat'
+  }
+  Write-Output $idt_batch | Out-File -Encoding ascii $idt_command
 }
 
 #------------------------------------------------------------------------------
