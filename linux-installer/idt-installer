@@ -163,6 +163,23 @@ function install_deps {
   #-- check for/install brew for macos
   case "$PLATFORM" in
   "Darwin")
+      install_darwin_deps
+    ;;
+  "Linux")
+    if [[ "${DISTRO}" == "Ubuntu" || "${DISTRO}" == "Debian" ]]; then
+      install_deps_with_apt_get
+    elif [[ "${DISTRO}" == "RedHatEnterpriseWorkstation" || "${DISTRO}" == "RedHatEnterpriseServer" || "${DISTRO}" == "CentOS" ]]; then
+      install_deps_with_yum
+    else
+      error "This script has not been updated for use with your linux distribution (${DISTRO})"
+    fi
+    ;;
+  esac
+
+}
+
+#------------------------------------------------------------------------------
+function install_darwin_deps {
     log "Checking for external dependency: brew"
     if [[ -z "$(which brew)" && -n "$(which ruby)" ]]; then
       log "'brew' installer not found, attempting to install..."
@@ -209,13 +226,13 @@ function install_deps {
     elif [[ "$FORCE" == true ]]; then
       brew upgrade kubernetes-helm
     fi
-    ;;
+}
 
-
-  "Linux")
+#------------------------------------------------------------------------------
+function install_deps_with_apt_get {
     log "Checking for and updating 'apt-get' support on Linux"
     if [[ -z "$(which apt-get)" ]]; then
-      error "'apt-get' is not found.  Thats the only linux installer I know, sorry."
+      error "'apt-get' is not found.  That's the only Debian/Ubuntu linux installer I know, sorry."
     fi
     if [[ -z "$(which add-apt-repository)" ]]; then
       $SUDO apt-get install -y software-properties-common python-software-properties
@@ -264,10 +281,64 @@ function install_deps {
       curl -fsSL https://raw.githubusercontent.com/kubernetes/helm/master/scripts/get | bash
       log  "Please review any setup requirements for 'helm' from: https://github.com/kubernetes/helm/blob/master/docs/install.md"
     fi
+}
 
-    ;;
-  esac
+#------------------------------------------------------------------------------
+function install_deps_with_yum {
+    log "Checking for and updating 'apt-get' support on Linux"
+    if [[ -z "$(which yum)" ]]; then
+      error "'yum' is not found.  That's the only RedHat/Centos linux installer I know, sorry."
+    fi
 
+    #-- CURL:
+    log "Installing/updating external dependency: curl"
+    if [[ -z "$(which curl)" || "$FORCE" == true ]]; then
+      $SUDO yum -y install curl
+    fi
+    #-- GIT:
+    log "Installing/updating external dependency: git"
+    if [[ -z "$(which git)" || "$FORCE" == true ]]; then
+      $SUDO yum install -y git
+      log  "Please review any setup requirements for 'git' from: https://git-scm.com/downloads"
+    fi
+
+    #-- Docker:
+    log "Installing/updating external dependency: docker"
+    if [[ -z "$(which docker)" || "$FORCE" == true ]]; then
+      # Remove older versions of docker
+      $SUDO yum remove docker docker-common docker-selinux docker-engine-selinux docker-engine docker-ce
+
+      # Install dependencies
+      $SUDO yum install -y yum-utils device-mapper-persistent-data lvm2
+
+      # Add docker repo & install
+      $SUDO yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+      $SUDO yum install docker-ce
+
+      if [ "$SUDO" ]; then
+        # Allow docker to run as a non-root user (if not running as root).
+        sudo groupadd docker 2>/dev/null
+        sudo usermod -aG docker $USER  2>/dev/null
+      else
+        log 'If you want to run docker without sudo run: "sudo groupadd docker && sudo usermod -aG docker $USER"'
+      fi
+      log  "Please review any setup requirements for 'docker' from: https://docs.docker.com/engine/installation/"
+    fi
+
+    #-- kubectl:
+    log "Installing/updating external dependency: kubectl"
+    if [[ -z "$(which kubectl)" || "$FORCE" == true ]]; then
+      printf "[kubernetes]\nname=Kubernetes\nbaseurl=https://packages.cloud.google.com/yum/repos/kubernetes-el7-x86_64\nenabled=1\ngpgcheck=1\nrepo_gpgcheck=1\ngpgkey=https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg\n" > /etc/yum.repos.d/kubernetes.repo
+      $SUDO yum install -y kubectl
+      log  "Please review any setup requirements for 'kubectl' from: https://kubernetes.io/docs/tasks/tools/install-kubectl/"
+    fi
+
+    #-- helm:
+    log "Installing/updating external dependency: helm"
+    if [[ -z "$(which helm)" || "$FORCE" == true ]]; then
+      curl -fsSL https://raw.githubusercontent.com/kubernetes/helm/master/scripts/get | bash
+      log  "Please review any setup requirements for 'helm' from: https://github.com/kubernetes/helm/blob/master/docs/install.md"
+    fi
 }
 
 #------------------------------------------------------------------------------
