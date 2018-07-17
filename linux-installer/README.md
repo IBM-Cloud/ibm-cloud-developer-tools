@@ -32,7 +32,7 @@ export DESIRED_VERSION=v2.4.2
 To install the IBM Cloud Developer Tools CLI, run the following command:
 
 ```
-$ curl -sL https://ibm.biz/idt-installer | bash
+$ curl -sL http://ibm.biz/idt-installer | bash
 ```
 
 Once complete, there will be three added shortcuts defined to access the IDT:
@@ -46,7 +46,7 @@ Once complete, there will be three added shortcuts defined to access the IDT:
 If you have any issues with the installer, try running with the `--trace` argument which will produce verbose output to assist us in diagnosing your problem:
 
 ```
-curl -sL https://ibm.biz/idt-installer | bash -s -- --trace
+curl -sL http://ibm.biz/idt-installer | bash -s -- --trace
 ```
 
 If updating an existing IDT installation, you can run the following:
@@ -67,7 +67,7 @@ idt update [--force] [--trace]
 This command is simply an alias defined during initial install that runs the installer shown here:
 
 ```
-$ curl -sL https://ibm.biz/idt-installer | bash -c -- [--force]
+$ curl -sL http://ibm.biz/idt-installer | bash -c -- [--force]
 ```
 
 
@@ -83,7 +83,7 @@ idt uninstall [--trace]
 This command is simply an alias defined during install that runs the following:
 
 ```
-$ curl -sL https://ibm.biz/idt-installer | bash -c -- uninstall
+$ curl -sL http://ibm.biz/idt-installer | bash -c -- uninstall
 ```
 
 
