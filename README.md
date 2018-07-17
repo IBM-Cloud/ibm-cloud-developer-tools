@@ -19,7 +19,7 @@ If you run into any issues, please let us know on the [IBM Cloud Tech Slack :: #
 The following command will install the IBM Cloud Developer Tools in a single invocation. Open up a terminal and run the following command:
 
 ```
-$ curl -sL https://ibm.biz/idt-installer | bash
+$ curl -sL http://ibm.biz/idt-installer | bash
 ```
 
 Once complete, there will be three shortcuts defined to access the IBM Cloud Developer Tools:
