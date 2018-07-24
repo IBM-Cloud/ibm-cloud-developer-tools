@@ -240,6 +240,7 @@ function install_bx() {
     log "Downloading and installing 'ibmcloud' CLI from: $url" 
     Invoke-Expression(New-Object Net.WebClient).DownloadString( $url )
     $Global:NEEDS_REBOOT = $true
+    $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User") 
   }
   log "IBM Cloud CLI version:"
   $bx_command = get-command bx -erroraction 'silentlycontinue'
