@@ -37,6 +37,10 @@ function help {
   1. Pre-req check for 'git', 'docker', 'kubectl', and 'helm'
   2. Install latest IBM Cloud 'bx' CLI
   3. Install all required plugins
+  4. Defines 'idt' shortcut to improve useability.
+      - idt           : Shortcut for normal "bx dev" command
+      - idt update    : Runs this installer checking for and installing any updates
+      - idt uninstall : Uninstalls IDT, 'bx' cli, and all plugins  
 
   Chat with us on Slack: $Global:SLACK_URL, channel #developer-tools
   Submit any issues to : $Global:GIT_URL/issues
@@ -95,10 +99,10 @@ function quit() {
 function uninstall() {
   warn "Starting Uninstall..."
   Write-Output ""
-  $reply = Read-Host -Prompt "Are you sure you want to remove IBM Cloud Developer Tools and IBM Cloud CLI (y/N)?"
+  $reply = Read-Host -Prompt "Are you sure you want to remove IDT and IBM Cloud CLI (y/N)?"
   Write-Output ""
   if($reply -match "[Yy]") {
-    log "Uninstalling IBM Cloud Developer Tools..."
+    log "Uninstalling IDT..."
     log "Deleting: C:\Program Files\IBM\Cloud"
     Remove-Item -Recurse -Force "C:\Program Files\IBM\Cloud" -erroraction 'silentlycontinue' 
     log "Deleting: ~/.bluemix"
@@ -135,6 +139,7 @@ function install() {
   install_deps
   install_bx
   install_plugins
+  env_setup add
 
   log "Install finished."
 
@@ -250,7 +255,7 @@ function install_bx() {
 #------------------------------------------------------------------------------
 #-- Install IBM Cloud CLI Plugins.
 function install_plugins {
-  log "Installing/updating IBM Cloud CLI plugins used by IBM Cloud Developer Tools..."
+  log "Installing/updating IBM Cloud CLI plugins used by IDT..."
   $plugins = "Cloud-Functions",
              "container-registry",
              "container-service",
@@ -278,6 +283,46 @@ function install_plugins {
   log "Running 'ibmcloud plugin list'..."
   iex "$bx_command plugin list"
   log "Finished installing/updating plugins"
+}
+
+#------------------------------------------------------------------------------
+#-- Create "idt" script to act as shortcut to "bx dev"
+function env_setup() {
+  Write-Output "Creating 'idt' script to act as shortcut to 'bx dev' command..."
+  $idt_batch = @"
+@ECHO OFF
+REM #-----------------------------------------------------------
+REM # IBM Cloud Developer Tools (IDT), version 1.2.0
+REM # Wrapper for the 'bx dev' command, and external helpers.
+REM #-----------------------------------------------------------
+REM # Syntax:
+REM #   idt                               - Run 'bx dev <args>'
+REM #   idt update    [--trace] [--force] - Update IDT and deps
+REM #   idt uninstall [--trace]           - Uninstall IDT
+REM #-----------------------------------------------------------
+set "action="
+if "%1"=="update"    set action="update"
+if "%1"=="uninstall" set action="uninstall"
+if defined action (
+  echo IDT launcher action: %action%
+  set ifile="%temp%\idt-win-installer.ps1"
+  echo Fetching latest installer to: %ifile%
+  Powershell -NoProfile -ExecutionPolicy Unrestricted -Command "Invoke-WebRequest 'http://ibm.biz/idt-win-installer' -UseBasicParsing -outfile '%ifile%'"
+  echo Calling: %ifile% %*
+  PowerShell -NoProfile -ExecutionPolicy Unrestricted -Command "& {Start-Process PowerShell -ArgumentList '-NoProfile -ExecutionPolicy Unrestricted -File %ifile% %*' -Verb RunAs}"
+) else (
+  bx dev %*
+)
+REM #-----------------------------------------------------------
+"@
+  $idt_command = get-command idt -erroraction 'silentlycontinue'
+  if( $idt_command )  {
+    # The command is set, use it's existing location
+  } else {
+    # Set to IBM Cloud install location
+    $idt_command = 'C:\"Program Files"\IBM\Cloud\bin\idt.bat'
+  }
+  Write-Output $idt_batch | Out-File -Encoding ascii $idt_command
 }
 
 #------------------------------------------------------------------------------
