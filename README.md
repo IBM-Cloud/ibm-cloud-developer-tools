@@ -2,7 +2,7 @@
 
 [![](https://img.shields.io/badge/IBM%20Cloud-powered-blue.svg)](https://bluemix.net)
 
-This repo provides support for the IBM Cloud Developer Tools (IDT) CLI environment. The IDT tools currently consists of the IBM Cloud CLI (bx) 'dev' and other plugins, as well as extensions to multiple IDEs.
+This repo provides support for the IBM Cloud Developer Tools (IDT) CLI environment. The IDT tools currently consists of the IBM Cloud CLI (ibmcloud) 'dev' and other plugins, as well as extensions to multiple IDEs.
 
 These tools work for the following environments:
 - [IBM **Cloud** Public](https://www.ibm.com/cloud-computing/)
@@ -23,9 +23,9 @@ $ curl -sL http://ibm.biz/idt-installer | bash
 ```
 
 Once complete, there will be three shortcuts defined to access the IBM Cloud Developer Tools:
-- `idt` : Main command line tool. Shorthand for 'bx dev' command
-- `idt update` : Update your IBM Cloud Developer Tools to the latest versions
-- `idt uninstall` : Uninstall the IBM Cloud Developer Tools
+- `ibmcloud dev` : Main command line tool
+- `ibmcloud dev update` : Update your IBM Cloud Developer Tools to the latest versions
+- `ibmcloud dev uninstall` : Uninstall the IBM Cloud Developer Tools
 
 Access the [platform-specific readme](./linux-installer/README.md) for additional details.
 
