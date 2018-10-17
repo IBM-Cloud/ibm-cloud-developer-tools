@@ -21,7 +21,7 @@ PowerShell script that downloads and installs the IBM Cloud Developer Tools (IDT
 ## Installation
 
 ### Single-line Running
-This action will install (or update) the IBM Cloud Developer Toolsto your windows system in a single command.
+This action will install (or update) the IBM Cloud Developer Tools to your windows system in a single command.
 
 1. Open Windows PowerShell by right-clicking and select "Run as Administrator".
 2. Run this command:
@@ -30,9 +30,9 @@ Set-ExecutionPolicy Unrestricted; iex(New-Object Net.WebClient).DownloadString('
 ```
 
 Once the installation has completed, and you have rebooted your system (as needed), there will be three added shortcuts defined to access the IDT:
-- `idt` : Main command line tool for IBM cloud native development (shortcut to 'bx dev' command)
-- `idt update` : Update your IDT environment to the latest versions
-- `idt uninstall` : Uninstall the IBM Developer Tools
+- `ibmcloud dev` : Main command line tool for IBM cloud native development
+- `ibmcloud dev update` : Update your IDT environment to the latest versions
+- `ibmcloud dev uninstall` : Uninstall the IBM Developer Tools
 
 
 ### Running from Download
@@ -108,7 +108,7 @@ Usage: idt-win-installer [<args>]
 
 Where <args> is:
     install | update    [Default] Perform full install (or update) of all needed CLIs and Plugins
-    uninstall           Uninstall full IBM Cloud CLI env, including 'bx', and plugins
+    uninstall           Uninstall full IBM Cloud CLI env, including 'ibmcloud', and plugins
     help | -h | -?      Show this help
     --force             Force updates of dependencies and other settings during update
     --trace             Eanble verbose tracing of all activity
@@ -116,12 +116,12 @@ Where <args> is:
 
 If "install" (or no action provided), a full CLI installation (or update) will occur:
   1. Pre-req check for 'git', 'docker', 'kubectl', and 'helm'
-  2. Install latest IBM Cloud 'bx' CLI
+  2. Install latest IBM Cloud 'ibmcloud' CLI
   3. Install all required plugins
   4. Defines aliases to improve useability
-      - idt : Shortcut for normal "bx dev" command
+      - idt : Shortcut for normal "ibmcloud dev" command
       - idt update : Runs this installer checking for and installing any updates
-      - idt uninstall : Uninstalls IDT, including the 'bx cli' and all plugins
+      - idt uninstall : Uninstalls IDT, including the 'ibmcloud cli' and all plugins
 
 If "uninstall", the IBM Cloud CLI and plugins are removed from the system, including personal metadata.
     Note: Pre-req CLIs listed above are NOT uninstalled.
@@ -134,6 +134,6 @@ Submit any issues to : https://github.com/IBM-Cloud/ibm-cloud-developer-tools/is
 
 ## Internal IBM users
 
-IBM users can use pre-release versions of the IDT (bx and all plugins). The installer will check if you have the internal "stage1" plugin repo defined, and ask if you want to use it for updates.  Note: Since during initial install of the bx CLI does not have extra plugin repos defined, it only applies during subsequent updates.
+IBM users can use pre-release versions of the IDT (ibmcloud and all plugins). The installer will check if you have the internal "stage1" plugin repo defined, and ask if you want to use it for updates.  Note: Since during initial install of the ibmcloud CLI does not have extra plugin repos defined, it only applies during subsequent updates.
 
 
