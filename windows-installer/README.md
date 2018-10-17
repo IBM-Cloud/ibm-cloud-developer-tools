@@ -58,7 +58,7 @@ Set-ExecutionPolicy Unrestricted
 
 If updating an existing IDT installation, you can run the following:
 ```
-idt update --trace
+ibmcloud dev update --trace
 ```
 
 
@@ -67,7 +67,7 @@ idt update --trace
 If you wish to update the IBM Developer Tools CLI, run:
 
 ```
-idt update [--force] [--trace]
+ibmcloud dev update [--force] [--trace]
 ```
 
 The `--force` argument that will force update to all dependencies too.
@@ -83,7 +83,7 @@ PowerShell -NoProfile -ExecutionPolicy Unrestricted -Command "& {Start-Process P
 If you wish to remove the IBM Developer Tools CLI, run:
 
 ```
-idt uninstall [--trace]
+ibmcloud dev uninstall [--trace]
 ```
 
 This command is simply a shortcut defined during install that runs (in admin mode)  the installer's uninstall action as shown here:
