@@ -217,10 +217,6 @@ function install_deps {
     if [[ -z "$(which apt-get)" ]]; then
       error "'apt-get' is not found.  Thats the only linux installer I know, sorry."
     fi
-    if [[ -z "$(which add-apt-repository)" ]]; then
-      $SUDO apt-get install -y software-properties-common python-software-properties
-    fi
-    $SUDO add-apt-repository -y ppa:git-core/ppa
     $SUDO apt-get -y update
 
     #-- CURL:
