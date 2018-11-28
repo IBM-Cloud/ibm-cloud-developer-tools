@@ -288,6 +288,55 @@ function install_deps_with_apt_get {
 }
 
 #------------------------------------------------------------------------------
+function install_deps_with_eopkg {
+    logrevert "Checking for and updating 'eopkg' support on Linux"
+    if [[ -z "$(which eopkg)" ]]; then
+      error "'eopkg' is not found.  Thats the only linux installer I know, sorry."
+    fi
+    $SUDO eopkg ur Solus
+
+    #-- CURL:
+    log "Installing/updating external dependency: curl"
+    if [[ -z "$(which curl)" || "$FORCE" == true ]]; then
+      $SUDO eopkg it curl
+    fi
+    #-- GIT:
+    log "Installing/updating external dependency: git"
+    if [[ -z "$(which git)" || "$FORCE" == true ]]; then
+      $SUDO eopkg it git
+      log  "Please review any setup requirements for 'git' from: https://git-scm.com/downloads"
+    fi
+
+    #-- Docker:
+    log "Installing/updating external dependency: docker"
+    if [[ -z "$(which docker)" || "$FORCE" == true ]]; then
+      $SUDO eopkg it docker
+      if [ "$SUDO" ]; then
+        # Allow docker to run as a non-root user (if not running as root).
+        sudo groupadd docker 2>/dev/null
+        sudo usermod -aG docker $USER  2>/dev/null
+      else
+        log 'If you want to run docker without sudo run: "sudo groupadd docker && sudo usermod -aG docker $USER"'
+      fi
+      log  "Please review any setup requirements for 'docker' from: https://docs.docker.com/engine/installation/"
+    fi
+
+    #-- kubectl:
+    log "Installing/updating external dependency: kubectl"
+    if [[ -z "$(which kubectl)" || "$FORCE" == true ]]; then
+      $SUDO eopkg it kubectl
+      log  "Please review any setup requirements for 'kubectl' from: https://kubernetes.io/docs/tasks/tools/install-kubectl/"
+    fi
+
+    #-- helm:
+    log "Installing/updating external dependency: helm"
+    if [[ -z "$(which helm)" || "$FORCE" == true ]]; then
+      curl -fsSL https://raw.githubusercontent.com/kubernetes/helm/master/scripts/get | bash
+      log  "Please review any setup requirements for 'helm' from: https://github.com/kubernetes/helm/blob/master/docs/install.md"
+    fi
+}
+
+#------------------------------------------------------------------------------
 function install_deps_with_yum {
     log "Checking for and updating 'yum' support on Linux"
     if [[ -z "$(which yum)" ]]; then
