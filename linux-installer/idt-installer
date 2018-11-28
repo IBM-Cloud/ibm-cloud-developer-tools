@@ -233,6 +233,7 @@ function install_darwin_deps {
     fi
 }
 
+<<<<<<< HEAD
 #------------------------------------------------------------------------------
 <<<<<<< HEAD
 =======
@@ -311,10 +312,48 @@ function install_deps_with_eopkg {
         sudo usermod -aG docker $USER  2>/dev/null
       else
         log 'If you want to run docker without sudo run: "sudo groupadd docker && sudo usermod -aG docker $USER"'
+=======
+  "Linux")
+    case "$DISTRO" in
+    "Ubuntu")
+      log "Checking for and updating 'apt-get' support on Linux"
+      if [[ -z "$(which apt-get)" ]]; then
+        error "'apt-get' is not found.  Thats the only linux installer I know, sorry."
       fi
-      log  "Please review any setup requirements for 'docker' from: https://docs.docker.com/engine/installation/"
-    fi
+      if [[ -z "$(which add-apt-repository)" ]]; then
+        $SUDO apt-get install -y software-properties-common python-software-properties
+      fi
+      $SUDO add-apt-repository -y ppa:git-core/ppa
+      $SUDO apt-get -y update
 
+      #-- CURL:
+      log "Installing/updating external dependency: curl"
+      if [[ -z "$(which curl)" || "$FORCE" == true ]]; then
+        $SUDO apt-get -y install curl
+      fi
+      #-- GIT:
+      log "Installing/updating external dependency: git"
+      if [[ -z "$(which git)" || "$FORCE" == true ]]; then
+        $SUDO apt-get -y install git
+        log  "Please review any setup requirements for 'git' from: https://git-scm.com/downloads"
+      fi
+
+      #-- Docker:
+      log "Installing/updating external dependency: docker"
+      if [[ -z "$(which docker)" || "$FORCE" == true ]]; then
+        curl -fsSL get.docker.com | $SUDO sh -
+        if [ "$SUDO" ]; then
+          # Allow docker to run as a non-root user (if not running as root).
+          sudo groupadd docker 2>/dev/null
+          sudo usermod -aG docker $USER  2>/dev/null
+        else
+          log 'If you want to run docker without sudo run: "sudo groupadd docker && sudo usermod -aG docker $USER"'
+        fi
+        log  "Please review any setup requirements for 'docker' from: https://docs.docker.com/engine/installation/"
+>>>>>>> Added support for Solus.
+      fi
+
+<<<<<<< HEAD
     #-- kubectl:
     log "Installing/updating external dependency: kubectl"
     if [[ -z "$(which kubectl)" || "$FORCE" == true ]]; then
@@ -336,6 +375,73 @@ function install_deps_with_yum {
     if [[ -z "$(which yum)" ]]; then
       error "'yum' is not found.  That's the only RedHat/Centos linux installer I know, sorry."
     fi
+=======
+      #-- kubectl:
+      log "Installing/updating external dependency: kubectl"
+      if [[ -z "$(which kubectl)" || "$FORCE" == true ]]; then
+        curl --progress-bar -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl
+        $SUDO mv ./kubectl /usr/local/bin/kubectl
+        $SUDO chmod +x /usr/local/bin/kubectl
+        log  "Please review any setup requirements for 'kubectl' from: https://kubernetes.io/docs/tasks/tools/install-kubectl/"
+      fi
+
+      #-- helm:
+      log "Installing/updating external dependency: helm"
+      if [[ -z "$(which helm)" || "$FORCE" == true ]]; then
+        curl -fsSL https://raw.githubusercontent.com/kubernetes/helm/master/scripts/get | bash
+        log  "Please review any setup requirements for 'helm' from: https://github.com/kubernetes/helm/blob/master/docs/install.md"
+      fi
+      ;;
+
+    "Solus")
+      log "Checking for and updating 'eopkg' support on Linux"
+      if [[ -z "$(which eopkg)" ]]; then
+        error "'eopkg' is not found.  Thats the only linux installer I know, sorry."
+      fi
+      $SUDO eopkg ur Solus
+
+      #-- CURL:
+      log "Installing/updating external dependency: curl"
+      if [[ -z "$(which curl)" || "$FORCE" == true ]]; then
+        $SUDO eopkg it curl
+      fi
+      #-- GIT:
+      log "Installing/updating external dependency: git"
+      if [[ -z "$(which git)" || "$FORCE" == true ]]; then
+        $SUDO eopkg it git
+        log  "Please review any setup requirements for 'git' from: https://git-scm.com/downloads"
+      fi
+
+      #-- Docker:
+      log "Installing/updating external dependency: docker"
+      if [[ -z "$(which docker)" || "$FORCE" == true ]]; then
+        $SUDO eopkg it docker
+        if [ "$SUDO" ]; then
+          # Allow docker to run as a non-root user (if not running as root).
+          sudo groupadd docker 2>/dev/null
+          sudo usermod -aG docker $USER  2>/dev/null
+        else
+          log 'If you want to run docker without sudo run: "sudo groupadd docker && sudo usermod -aG docker $USER"'
+        fi
+        log  "Please review any setup requirements for 'docker' from: https://docs.docker.com/engine/installation/"
+      fi
+
+      #-- kubectl:
+      log "Installing/updating external dependency: kubectl"
+      if [[ -z "$(which kubectl)" || "$FORCE" == true ]]; then
+        $SUDO eopkg it kubectl
+        log  "Please review any setup requirements for 'kubectl' from: https://kubernetes.io/docs/tasks/tools/install-kubectl/"
+      fi
+
+      #-- helm:
+      log "Installing/updating external dependency: helm"
+      if [[ -z "$(which helm)" || "$FORCE" == true ]]; then
+        curl -fsSL https://raw.githubusercontent.com/kubernetes/helm/master/scripts/get | bash
+        log  "Please review any setup requirements for 'helm' from: https://github.com/kubernetes/helm/blob/master/docs/install.md"
+      fi
+      ;;
+    esac
+>>>>>>> Added support for Solus.
 
     #-- CURL:
     log "Installing/updating external dependency: curl"
