@@ -166,9 +166,9 @@ function install_deps {
       install_darwin_deps
     ;;
   "Linux")
-    if [[ "${DISTRO}" == "Ubuntu" || "${DISTRO}" == "Debian" ]]; then
+    if [[ "${DISTRO}" == *Ubuntu* || "${DISTRO}" == *Debian* ]]; then
       install_deps_with_apt_get
-    elif [[ "${DISTRO}" == "RedHatEnterpriseWorkstation" || "${DISTRO}" == "RedHatEnterpriseServer" || "${DISTRO}" == "CentOS" ]]; then
+    elif [[ "${DISTRO}" == *RedHat* || "${DISTRO}" == *CentOS* ]]; then
       install_deps_with_yum
     else
       error "This script has not been updated for use with your linux distribution (${DISTRO})"
@@ -494,9 +494,9 @@ function main {
     ;;
   "Linux")
     # Linux distro, e.g "Ubuntu", "RedHatEnterpriseWorkstation", "RedHatEnterpriseServer", "CentOS", "Debian"
-    DISTRO=$(lsb_release -is 2>/dev/null || echo "")
-    if [ "$DISTRO" != Ubuntu ]; then
-      warn "Linux has only been tested on Ubuntu, please let us know if you use this utility on other Distros"
+    DISTRO=$(lsb_release -ds 2>/dev/null || cat /etc/*release 2>/dev/null | head -n1 || uname -om || echo "")
+    if [ "$DISTRO" != *Ubuntu* &&  "$DISTRO" != *RedHat* && "$DISTRO" != *CentOS* && "$DISTRO" != *Debian* && ]; then
+      warn "Linux has only been tested on Ubuntu, RedHat, Centos & Debian distrubutions please let us know if you use this utility on other Distros"
     fi
     ;;
   *)
