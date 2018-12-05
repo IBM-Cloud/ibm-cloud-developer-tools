@@ -245,6 +245,7 @@ function install_deps_with_apt_get {
     if [[ -z "$(which curl)" || "$FORCE" == true ]]; then
       $SUDO apt-get -y install curl
     fi
+
     #-- GIT:
     log "Installing/updating external dependency: git"
     if [[ -z "$(which git)" || "$FORCE" == true ]]; then
@@ -253,18 +254,7 @@ function install_deps_with_apt_get {
     fi
 
     #-- Docker:
-    log "Installing/updating external dependency: docker"
-    if [[ -z "$(which docker)" || "$FORCE" == true ]]; then
-      curl -fsSL get.docker.com | $SUDO sh -
-      if [ "$SUDO" ]; then
-        # Allow docker to run as a non-root user (if not running as root).
-        sudo groupadd docker 2>/dev/null
-        sudo usermod -aG docker $USER  2>/dev/null
-      else
-        log 'If you want to run docker without sudo run: "sudo groupadd docker && sudo usermod -aG docker $USER"'
-      fi
-      log  "Please review any setup requirements for 'docker' from: https://docs.docker.com/engine/installation/"
-    fi
+    install_docker
 
     #-- kubectl:
     log "Installing/updating external dependency: kubectl"
@@ -303,27 +293,7 @@ function install_deps_with_yum {
     fi
 
     #-- Docker:
-    log "Installing/updating external dependency: docker"
-    if [[ -z "$(which docker)" || "$FORCE" == true ]]; then
-      # Remove older versions of docker
-      $SUDO yum remove docker docker-common docker-selinux docker-engine-selinux docker-engine docker-ce
-
-      # Install dependencies
-      $SUDO yum install -y yum-utils device-mapper-persistent-data lvm2
-
-      # Add docker repo & install
-      $SUDO yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
-      $SUDO yum install docker-ce
-
-      if [ "$SUDO" ]; then
-        # Allow docker to run as a non-root user (if not running as root).
-        sudo groupadd docker 2>/dev/null
-        sudo usermod -aG docker $USER  2>/dev/null
-      else
-        log 'If you want to run docker without sudo run: "sudo groupadd docker && sudo usermod -aG docker $USER"'
-      fi
-      log  "Please review any setup requirements for 'docker' from: https://docs.docker.com/engine/installation/"
-    fi
+    install_docker
 
     #-- kubectl:
     log "Installing/updating external dependency: kubectl"
@@ -339,6 +309,25 @@ function install_deps_with_yum {
       curl -fsSL https://raw.githubusercontent.com/kubernetes/helm/master/scripts/get | bash
       log  "Please review any setup requirements for 'helm' from: https://github.com/kubernetes/helm/blob/master/docs/install.md"
     fi
+}
+
+#------------------------------------------------------------------------------
+function install_docker {
+
+    #-- Docker:
+    log "Installing/updating external dependency: docker"
+    if [[ -z "$(which docker)" || "$FORCE" == true ]]; then
+      curl -fsSL get.docker.com | $SUDO sh -
+      if [ "$SUDO" ]; then
+        # Allow docker to run as a non-root user (if not running as root).
+        sudo groupadd docker 2>/dev/null
+        sudo usermod -aG docker $USER  2>/dev/null
+      else
+        log 'If you want to run docker without sudo run: "sudo groupadd docker && sudo usermod -aG docker $USER"'
+      fi
+      log  "Please review any setup requirements for 'docker' from: https://docs.docker.com/engine/installation/"
+    fi
+    docker version
 }
 
 #------------------------------------------------------------------------------
