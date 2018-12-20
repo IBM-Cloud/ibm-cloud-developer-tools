@@ -275,7 +275,7 @@ function install_deps_with_apt_get {
 
 #------------------------------------------------------------------------------
 function install_deps_with_yum {
-    log "Checking for and updating 'apt-get' support on Linux"
+    log "Checking for and updating 'yum' support on Linux"
     if [[ -z "$(which yum)" ]]; then
       error "'yum' is not found.  That's the only RedHat/Centos linux installer I know, sorry."
     fi
