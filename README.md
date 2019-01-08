@@ -8,7 +8,7 @@ These tools work for the following environments:
 - [IBM **Cloud** Public](https://www.ibm.com/cloud-computing/)
 - [IBM **Cloud** Private](https://www.ibm.com/cloud-computing/products/ibm-cloud-private/)
 - [IBM **Cloud** Dedicated](https://www.ibm.com/cloud-computing/bluemix/dedicated)
-- [IBM MicroService Builder](https://developer.ibm.com/microservice-builder/)
+- [IBM Microclimate](https://www.ibm.com/us-en/marketplace/microclimate)
 
 If you run into any issues, please let us know on the [IBM Cloud Tech Slack :: #developer-tools](https://slack-invite-ibm-cloud-tech.mybluemix.net/) or file an issue on our [GitHub repo](https://github.com/IBM-Cloud/ibm-cloud-developer-tools).
 
