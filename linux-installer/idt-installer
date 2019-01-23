@@ -42,7 +42,7 @@ function help {
   Chat with us on Slack: ${SLACK_URL}, channel #developer-tools
   Submit any issues to : ${GIT_URL}/issues
 
-	!!EOF
+  !!EOF
 }
 
 
@@ -170,6 +170,8 @@ function install_deps {
       install_deps_with_apt_get
     elif [[ "${DISTRO}" == *Red*Hat* || "${DISTRO}" == *CentOS* ]]; then
       install_deps_with_yum
+    elif [[ "$DISTRO" == *Manjaro*Linux*  ]]; then 
+      install_deps_with_pacman
     else
       error "This script has not been updated for use with your linux distribution (${DISTRO})"
     fi
@@ -271,6 +273,44 @@ function install_deps_with_apt_get {
       curl -fsSL https://raw.githubusercontent.com/kubernetes/helm/master/scripts/get | bash
       log  "Please review any setup requirements for 'helm' from: https://github.com/kubernetes/helm/blob/master/docs/install.md"
     fi
+}
+#-----------------------------------------------------------------
+#--- Arch linux Support 
+function install_deps_with_pacman {
+  log " Checking and updating 'pacman' support on Linux"
+  if [[ -z "$(which pacman)" ]]; then 
+      error "'pacman' is not found. There is no support for Yaourt or aurman right now. Please open an issue for support"
+  else 
+    $SUDO pacman -Sy
+    #--- CURL
+    log "Installing/updating external dependency: curl"
+    if [[ -z "$(which curl)" || "$FORCE" == true ]]; then 
+      $SUDO pacman -S curl
+    fi 
+    #--- GIT
+    log "Installing/ updating external dependency: git"
+    if [[ -z "$(which git)" || "$FORCE" == true ]]; then
+      $SUDO pacman -S git
+    fi 
+    #-- Docker:
+    install_docker
+
+    #--- kubectl
+    log "Installing/updating external dependency: kubectl"
+    if [[ -z "$(which kubectl)" || "$FORCE" == true ]]; then
+      curl --progress-bar -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl
+      $SUDO mv ./kubectl /usr/local/bin/kubectl
+      $SUDO chmod +x /usr/local/bin/kubectl
+      log  "Please review any setup requirements for 'kubectl' from: https://kubernetes.io/docs/tasks/tools/install-kubectl/"
+    fi
+    #-- helm:
+    log "Installing/updating external dependency: helm"
+    if [[ -z "$(which helm)" || "$FORCE" == true ]]; then
+      curl -fsSL https://raw.githubusercontent.com/kubernetes/helm/master/scripts/get | bash
+      log  "Please review any setup requirements for 'helm' from: https://github.com/kubernetes/helm/blob/master/docs/install.md"
+    fi
+
+  fi
 }
 
 #------------------------------------------------------------------------------
@@ -408,29 +448,29 @@ function env_setup {
     idt_launch_ver=$(grep "# Version:" /usr/local/bin/idt 2>/dev/null | cut -d':' -f2)
     if [[ ! -f "$idt_prog" || "$FORCE" == true || "${idt_launch_ver}" != "$VERSION" ]]; then
       cat <<-!!EOF > ~/idt
-				#!/bin/bash
-				#-----------------------------------------------------------
-				# IBM Cloud Developer Tools (IDT)
-				# Version:${VERSION}
-				# Wrapper for the 'bx dev' command, and external helpers.
-				#-----------------------------------------------------------
-				# Syntax:
-				#   idt                               - Run 'bx dev <args>'
-				#   idt update    [--trace] [--force] - Update IDT and deps
-				#   idt uninstall [--trace]           - Uninstall IDT
-				#-----------------------------------------------------------
-				if [[ "\$1" == "update" || "\$1" == "uninstall" ]]; then
-				  echo "IDT launcher action: \$1"
-				  tmp=\$(mktemp -d 2>/dev/null || mktemp -d -t 'idttmpdir')
-				  echo "Fetching latest installer to: \$tmp/idt-installer"
-				  curl -sL https://ibm.biz/idt-installer -o \$tmp/idt-installer
-				  bash -- \$tmp/idt-installer \$*
-				  rm -r \$tmp
-				else
-				  bx dev \$*
-				fi
-				#-----------------------------------------------------------
-			!!EOF
+        #!/bin/bash
+        #-----------------------------------------------------------
+        # IBM Cloud Developer Tools (IDT)
+        # Version:${VERSION}
+        # Wrapper for the 'bx dev' command, and external helpers.
+        #-----------------------------------------------------------
+        # Syntax:
+        #   idt                               - Run 'bx dev <args>'
+        #   idt update    [--trace] [--force] - Update IDT and deps
+        #   idt uninstall [--trace]           - Uninstall IDT
+        #-----------------------------------------------------------
+        if [[ "\$1" == "update" || "\$1" == "uninstall" ]]; then
+          echo "IDT launcher action: \$1"
+          tmp=\$(mktemp -d 2>/dev/null || mktemp -d -t 'idttmpdir')
+          echo "Fetching latest installer to: \$tmp/idt-installer"
+          curl -sL https://ibm.biz/idt-installer -o \$tmp/idt-installer
+          bash -- \$tmp/idt-installer \$*
+          rm -r \$tmp
+        else
+          bx dev \$*
+        fi
+        #-----------------------------------------------------------
+      !!EOF
       $SUDO mv ~/idt $idt_prog
       $SUDO chmod 755 $idt_prog
       log "The following shortcuts defined to access the IBM Cloud Developer Tools CLI:"
@@ -484,7 +524,7 @@ function main {
   "Linux")
     # Linux distro, e.g "Ubuntu", "RedHatEnterpriseWorkstation", "RedHatEnterpriseServer", "CentOS", "Debian"
     DISTRO=$(lsb_release -ds 2>/dev/null || cat /etc/*release 2>/dev/null | head -n1 || uname -om || echo "")
-    if [[ "$DISTRO" != *Ubuntu* &&  "$DISTRO" != *RedHat* && "$DISTRO" != *CentOS* && "$DISTRO" != *Debian* ]]; then
+    if [[ "$DISTRO" != *Ubuntu* &&  "$DISTRO" != *RedHat* && "$DISTRO" != *CentOS* && "$DISTRO" != *Debian* && "$DISTRO" != *Manjaro*Linux* ]]; then
       warn "Linux has only been tested on Ubuntu, RedHat, Centos & Debian distrubutions please let us know if you use this utility on other Distros"
     fi
     ;;
