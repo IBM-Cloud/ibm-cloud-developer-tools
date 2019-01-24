@@ -37,7 +37,7 @@ function help {
   4. Defines 'idt' shortcut to improve useability.
       - idt           : Shortcut for normal "bx dev" command
       - idt update    : Runs this installer checking for and installing any updates
-      - idt uninstall : Uninstalls IDT, 'bx' cli, and all plugins  
+      - idt uninstall : Uninstalls IDT, 'bx' cli, and all plugins
 
   Chat with us on Slack: ${SLACK_URL}, channel #developer-tools
   Submit any issues to : ${GIT_URL}/issues
@@ -133,7 +133,7 @@ function install {
   else
     log "Starting Update..."
   fi
-  
+
   #-- Check if internal IBM setup
   if [[ -n "$(which bx)" ]]; then
     read -r repo url <<< $(bx plugin repos | grep stage1)
@@ -209,13 +209,13 @@ function install_darwin_deps {
       brew cask reinstall docker
     fi
 
-     #-- kubectl:
+    #-- kubectl:
     log "Installing/updating external dependency: kubectl"
-    if [[ -z "$(which kubectl)" || "$FORCE" == true ]]; then
-      curl --progress-bar -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/darwin/amd64/kubectl
-      $SUDO mv ./kubectl /usr/local/bin/kubectl
-      $SUDO chmod +x /usr/local/bin/kubectl
+    if [[ -z "$(which kubectl)" ]]; then
+      brew install kubectl
       log  "Please review any setup requirements for 'kubectl' from: https://kubernetes.io/docs/tasks/tools/install-kubectl/"
+    elif [[ "$FORCE" == true ]]; then
+      brew upgrade kubectl
     fi
 
     #-- helm:
