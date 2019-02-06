@@ -19,7 +19,7 @@ If you run into any issues, please let us know on the [IBM Cloud Tech Slack :: #
 The following command will install the IBM Cloud Developer Tools in a single invocation. Open up a terminal and run the following command:
 
 ```
-$ curl -sL http://ibm.biz/idt-installer | bash
+$ curl -sL https://ibm.biz/idt-installer | bash
 ```
 
 Once complete, there will be three shortcuts defined to access the IBM Cloud Developer Tools:
@@ -38,7 +38,7 @@ To install the IBM Cloud Developer Tools CLI on Windows 10 or newer:
 1. Open Windows PowerShell by right-clicking and select "Run as Administrator".
 2. Run this command:
 ```
-Set-ExecutionPolicy Unrestricted; iex(New-Object Net.WebClient).DownloadString('http://ibm.biz/idt-win-installer')
+Set-ExecutionPolicy Unrestricted; iex(New-Object Net.WebClient).DownloadString('https://ibm.biz/idt-win-installer')
 ```
 
 Access the [Windows-specific readme](./windows-installer/README.md) for additional details.
