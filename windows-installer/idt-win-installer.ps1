@@ -171,7 +171,7 @@ function install_deps() {
     log "Installing/updating external dependency: docker"
     Invoke-WebRequest "https://download.docker.com/win/stable/Docker%20for%20Windows%20Installer.exe" -UseBasicParsing -outfile "InstallDocker.exe"
     .\InstallDocker.exe | Out-Null
-    $Global:NEEDS_REBOOT = $true
+    $Global:NEEDS_REBOOT = $false
     log "Install/update completed for: docker"
   }
 
@@ -194,7 +194,7 @@ function install_deps() {
   if( -not (get-command helm -erroraction 'silentlycontinue') -or $Global:FORCE) {
     log "Installing/updating external dependency: helm"
   [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-    $helm_url = ((Invoke-WebRequest https://github.com/kubernetes/helm/releases -UseBasicParsing).Links.OuterHTML | Where-Object{$_ -match 'windows-amd64.tar.gz'} | Select-Object -first 1).Split('"')[1]
+    $helm_url = ((Invoke-WebRequest https://github.com/helm/helm/releases -UseBasicParsing).Links.OuterHTML | Where-Object{$_ -match '.+?windows-amd64.zip'} | Select-Object -first 1).Split('"')[1]
     log "Helm URL : $helm_url"
     $helm_file = $helm_url.Split("/")[-1]
     log "Helm File: $helm_file"
