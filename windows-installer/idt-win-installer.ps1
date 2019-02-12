@@ -3,9 +3,9 @@
 #------------------------------------------------------------------------------
 # IBM Cloud Developer Tools - CLI installer script for Windows 10 systems
 #------------------------------------------------------------------------------
-# Copyright (c) 2018, International Business Machines. All Rights Reserved.
+# Copyright (c) 2019, International Business Machines. All Rights Reserved.
 #------------------------------------------------------------------------------
-$Global:VERSION="1.2.0"
+$Global:VERSION="1.2.1"
 $Global:PROG="IBM Cloud Developer Tools - Installer for Windows"
 
 $Global:INSTALLER_URL="https://ibm.biz/idt-win-installer"
@@ -169,8 +169,8 @@ function install_deps() {
   log "Checking for external dependency: docker"
   if( -not(get-command docker -erroraction 'silentlycontinue') -or $Global:FORCE) {
     log "Installing/updating external dependency: docker"
-    Invoke-WebRequest "https://download.docker.com/win/stable/InstallDocker.msi" -UseBasicParsing -outfile "InstallDocker.msi"
-    msiexec /i InstallDocker.msi /passive | Out-Null
+    Invoke-WebRequest "https://download.docker.com/win/stable/Docker%20for%20Windows%20Installer.exe" -UseBasicParsing -outfile "InstallDocker.exe"
+    .\InstallDocker.exe | Out-Null
     $Global:NEEDS_REBOOT = $true
     log "Install/update completed for: docker"
   }
