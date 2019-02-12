@@ -5,7 +5,7 @@
 #------------------------------------------------------------------------------
 # Copyright (c) 2019, International Business Machines. All Rights Reserved.
 #------------------------------------------------------------------------------
-$Global:VERSION="1.2.1"
+$Global:VERSION="1.2.2"
 $Global:PROG="IBM Cloud Developer Tools - Installer for Windows"
 
 $Global:INSTALLER_URL="https://ibm.biz/idt-win-installer"
@@ -288,7 +288,7 @@ function install_plugins {
 #------------------------------------------------------------------------------
 #-- Create "idt" script to act as shortcut to "bx dev"
 function env_setup() {
-  Write-Output "Creating 'idt' script to act as shortcut to 'bx dev' command..."
+  Write-Output "Creating 'idt' script to act as shortcut to 'ibmcloud dev' command..."
   $idt_batch = @"
 @ECHO OFF
 REM #-----------------------------------------------------------
@@ -320,7 +320,7 @@ REM #-----------------------------------------------------------
     # The command is set, use it's existing location
   } else {
     # Set to IBM Cloud install location
-    $idt_command = 'C:\"Program Files"\IBM\Cloud\bin\idt.bat'
+    $idt_command = 'C:\Program Files\IBM\Cloud\bin\idt.bat'
   }
   Write-Output $idt_batch | Out-File -Encoding ascii $idt_command
 }
