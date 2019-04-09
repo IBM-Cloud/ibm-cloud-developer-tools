@@ -179,8 +179,14 @@ function install_deps() {
   log "Checking for external dependency: kubectl"
   if( -not( get-command kubectl -erroraction 'silentlycontinue') -or $Global:FORCE) {
     log "Installing/updating external dependency: kubectl"
-    $kube_version = (Invoke-WebRequest "https://storage.googleapis.com/kubernetes-release/release/stable.txt" -UseBasicParsing).Content
-    $kube_version = $kube_version -replace "`n|`r"
+
+    $response = Invoke-RestMethod "https://containers.cloud.ibm.com/v1/kube-versions" 
+    for ($i = 0; $i -lt $response.Length; $i++){
+        if ($response[$i].default){
+            $kube_version = "v" + $response[$i].major + "." + $response[$i].minor + "."  +$response[$i].patch
+            break
+        }
+    }
     Invoke-WebRequest "https://storage.googleapis.com/kubernetes-release/release/$kube_version/bin/windows/amd64/kubectl.exe" -UseBasicParsing -outfile "kubectl.exe"
     mkdir "C:\Program Files\kubectl" -erroraction 'silentlycontinue'
     Move-Item -Path "kubectl.exe" -Destination "C:\Program Files\kubectl" -force
