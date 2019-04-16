@@ -28,7 +28,6 @@ function help {
 
   Where <args> is:
     install | update   [Default] Perform install (or update) of all needed CLIs and Plugins
-    uninstall          Uninstall full IBM Cloud CLI env, including 'bx', and plugins
     help               Show this help
     --force | -f       Force updates of dependencies and other settings during update
     --trace            Eanble verbose tracing of all activity
@@ -36,11 +35,7 @@ function help {
   If "install", "update", or no action, a full CLI installation (or update) will occur:
   1. Pre-req check for 'git', 'docker', 'kubectl', and 'helm'
   2. Install latest IBM Cloud 'bx' CLI
-  3. Install all required plugins
-  4. Defines 'idt' shortcut to improve useability.
-      - idt           : Shortcut for normal "bx dev" command
-      - idt update    : Runs this installer checking for and installing any updates
-      - idt uninstall : Uninstalls IDT, 'bx' cli, and all plugins  
+  3. Install all required plugins 
 
   Chat with us on Slack: $Global:SLACK_URL, channel #developer-tools
   Submit any issues to : $Global:GIT_URL/issues
@@ -92,24 +87,6 @@ function quit() {
       #-- turn opff trace
       Set-PSDebug -Trace 0
     }
-  }
-}
-
-#------------------------------------------------------------------------------
-function uninstall() {
-  warn "Starting Uninstall..."
-  Write-Output ""
-  $reply = Read-Host -Prompt "Are you sure you want to remove IDT and IBM Cloud CLI (y/N)?"
-  Write-Output ""
-  if($reply -match "[Yy]") {
-    log "Uninstalling IDT..."
-    log "Deleting: C:\Program Files\IBM\Cloud"
-    Remove-Item -Recurse -Force "C:\Program Files\IBM\Cloud" -erroraction 'silentlycontinue' 
-    log "Deleting: ~/.bluemix"
-    Remove-Item -Recurse -Force ~/.bluemix -erroraction 'silentlycontinue' 
-    log "Uninstall complete."
-  } else {
-    log "Uninstall cancelled at user request"
   }
 }
 
@@ -255,7 +232,7 @@ function install_bx() {
 #------------------------------------------------------------------------------
 #-- Install IBM Cloud CLI Plugins.
 function install_plugins {
-  log "Installing/updating IBM Cloud CLI plugins used by IDT..."
+  log "Installing/updating IBM Cloud CLI plugins..."
   $plugins = "Cloud-Functions",
              "container-registry",
              "container-service",
@@ -286,43 +263,20 @@ function install_plugins {
 }
 
 #------------------------------------------------------------------------------
-#-- Create "idt" script to act as shortcut to "bx dev"
+#-- Create "ic" script to act as shortcut to "ibmcloud"
 function env_setup() {
-  Write-Output "Creating 'idt' script to act as shortcut to 'ibmcloud dev' command..."
-  $idt_batch = @"
-@ECHO OFF
-REM #-----------------------------------------------------------
-REM # IBM Cloud Developer Tools (IDT), version 1.2.0
-REM # Wrapper for the 'bx dev' command, and external helpers.
-REM #-----------------------------------------------------------
-REM # Syntax:
-REM #   idt                               - Run 'bx dev <args>'
-REM #   idt update    [--trace] [--force] - Update IDT and deps
-REM #   idt uninstall [--trace]           - Uninstall IDT
-REM #-----------------------------------------------------------
-set "action="
-if "%1"=="update"    set action="update"
-if "%1"=="uninstall" set action="uninstall"
-if defined action (
-  echo IDT launcher action: %action%
-  set ifile="%temp%\idt-win-installer.ps1"
-  echo Fetching latest installer to: %ifile%
-  Powershell -NoProfile -ExecutionPolicy Unrestricted -Command "Invoke-WebRequest 'http://ibm.biz/idt-win-installer' -UseBasicParsing -outfile '%ifile%'"
-  echo Calling: %ifile% %*
-  PowerShell -NoProfile -ExecutionPolicy Unrestricted -Command "& {Start-Process PowerShell -ArgumentList '-NoProfile -ExecutionPolicy Unrestricted -File %ifile% %*' -Verb RunAs}"
-) else (
-  bx dev %*
-)
-REM #-----------------------------------------------------------
-"@
-  $idt_command = get-command idt -erroraction 'silentlycontinue'
-  if( $idt_command )  {
-    # The command is set, use it's existing location
+  $ic_command = get-command ic -erroraction 'silentlycontinue'
+  if ( $ic_command ) {
+    # the command is set, use its existing location
   } else {
-    # Set to IBM Cloud install location
-    $idt_command = 'C:\Program Files\IBM\Cloud\bin\idt.bat'
-  }
-  Write-Output $idt_batch | Out-File -Encoding ascii $idt_command
+    Write-Output "Creating 'ic' script to act as shortcut to 'ibmcloud' command..."
+    $ic_batch = @"
+@ECHO OFF
+ibmcloud %*
+"@
+    $ic_command = 'C:\Program Files\IBM\Cloud\bin\ic.bat'
+    Write-Output $ic_batch | Out-File -Encoding ascii $ic_command
+  }  
 }
 
 #------------------------------------------------------------------------------
@@ -365,14 +319,12 @@ function main {
       }
       "update"    { $ACTION = "install" }
       "install"   { $ACTION = "install" }
-      "uninstall" { $ACTION = "uninstall" }
       "help"      { $ACTION = "help" }
       default     { warn "Undefined Arg: $arg" }
     }
   }
   switch -exact ($ACTION) {
     "install"   { install }
-    "uninstall" { uninstall }
     default     { help }
   }
 

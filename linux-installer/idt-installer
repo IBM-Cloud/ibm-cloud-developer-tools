@@ -25,7 +25,6 @@ function help {
 
   Where <args> is:
     install          [Default] Perform full install (or update) of all needed CLIs and Plugins
-    uninstall        Uninstall full IBM Cloud CLI env, including 'bx', and plugins
     help | -h | -?   Show this help
     --force          Force updates of dependencies and other settings during update
     --trace          Eanble verbose tracing of all activity
@@ -34,10 +33,6 @@ function help {
   1. Pre-req check for 'git', 'docker', 'kubectl', and 'helm'
   2. Install latest IBM Cloud 'bx' CLI
   3. Install all required plugins
-  4. Defines 'idt' shortcut to improve useability.
-      - idt           : Shortcut for normal "bx dev" command
-      - idt update    : Runs this installer checking for and installing any updates
-      - idt uninstall : Uninstalls IDT, 'bx' cli, and all plugins  
 
   Chat with us on Slack: ${SLACK_URL}, channel #developer-tools
   Submit any issues to : ${GIT_URL}/issues
@@ -83,52 +78,8 @@ function prompt {
 }
 
 #------------------------------------------------------------------------------
-function uninstall {
-  if [[ -t 0 ]]; then   #-- are we in a terminal?
-    echo
-    prompt "Please confirm you want to uninstall IBM Cloud Developer Tools (y/N)?"
-    if [[ "$REPLY" != [Yy]* ]]; then
-      log "Uninstall aborted at user request"
-      return
-    fi
-  fi
-  warn "Starting Uninstall..."
-  [ "$SUDO" ] && log "You may be prompted for 'sudo' password."
-
-  #-- Run the following regardless
-  $SUDO rm -f  /usr/local/bin/bluemix
-  $SUDO rm -f  /usr/local/bin/bx
-  $SUDO rm -f  /usr/local/bin/bluemix-analytics
-  $SUDO rm -rf /usr/local/Bluemix
-  #-- Taken from bluemix CLI brew uninstaller
-  if [[ -f /etc/profile ]]; then
-    $SUDO sed -E -i ".bluemix_uninstall_bak" \
-                      -e '/^### Added by the Bluemix CLI$/d' \
-                      -e '/^source \/usr\/local\/Bluemix\/bx\/bash_autocomplete$/d' \
-                      /etc/profile
-  fi
-  if [[ -f ~/.bashrc ]]; then
-    sed -E -i ".bluemix_uninstall_bak" \
-                  -e '/^### Added by the Bluemix CLI$/d' \
-                  -e '/^source \/usr\/local\/Bluemix\/bx\/bash_autocomplete$/d' \
-                  ~/.bashrc
-  fi
-  if [[ -f ~/.zshrc ]]; then
-    sed -E -i ".bluemix_uninstall_bak" \
-                  -e '/^### Added by the Bluemix CLI$/d' \
-                  -e '/^source \/usr\/local\/Bluemix\/bx\/zsh_autocomplete$/d' \
-                  ~/.zshrc
-  fi
-  env_setup remove
-
-  rm -rf ~/.bluemix
-
-  log "Uninstall finished."
-}
-
-#------------------------------------------------------------------------------
 function install {
-  if [[ -n "$(which idt)" ]]; then
+  if [[ -n "$(which bx)" ]]; then
     log "Starting Installation..."
   else
     log "Starting Update..."
@@ -364,7 +315,7 @@ function install_plugins {
     "sdk-gen"
   )
 
-  log "Installing/updating IBM Cloud CLI plugins used by IDT..."
+  log "Installing/updating IBM Cloud CLI plugins..."
   for plugin in "${PLUGINS[@]}"; do
     log "Checking status of plugin: ${plugin}"
     read -r p ver <<< "$(bx plugin list | grep "^${plugin} ")"
@@ -383,13 +334,13 @@ function install_plugins {
 
 #------------------------------------------------------------------------------
 function env_setup {
-  idt_prog="/usr/local/bin/idt"
   env_file=""
 
   if   [[ -f ~/.bashrc ]]      ; then env_file=~/.bashrc
   elif [[ -f ~/.bash_profile ]]; then env_file=~/.bash_profile
   elif [[ -f ~/.profile ]]     ; then env_file=~/.profile
   fi
+
 
   #-- Clear up any old aliases
   if [[ -n "$(grep 'alias idt="bx dev"' "$env_file")" ]]; then
@@ -404,44 +355,10 @@ function env_setup {
     warn "Symptom is: running 'idt update' results in 'update is not a defined command'."
   fi
 
-  if [[ "$1" == "add" ]]; then
-    idt_launch_ver=$(grep "# Version:" /usr/local/bin/idt 2>/dev/null | cut -d':' -f2)
-    if [[ ! -f "$idt_prog" || "$FORCE" == true || "${idt_launch_ver}" != "$VERSION" ]]; then
-      cat <<-!!EOF > ~/idt
-				#!/bin/bash
-				#-----------------------------------------------------------
-				# IBM Cloud Developer Tools (IDT)
-				# Version:${VERSION}
-				# Wrapper for the 'bx dev' command, and external helpers.
-				#-----------------------------------------------------------
-				# Syntax:
-				#   idt                               - Run 'bx dev <args>'
-				#   idt update    [--trace] [--force] - Update IDT and deps
-				#   idt uninstall [--trace]           - Uninstall IDT
-				#-----------------------------------------------------------
-				if [[ "\$1" == "update" || "\$1" == "uninstall" ]]; then
-				  echo "IDT launcher action: \$1"
-				  tmp=\$(mktemp -d 2>/dev/null || mktemp -d -t 'idttmpdir')
-				  echo "Fetching latest installer to: \$tmp/idt-installer"
-				  curl -sL https://ibm.biz/idt-installer -o \$tmp/idt-installer
-				  bash -- \$tmp/idt-installer \$*
-				  rm -r \$tmp
-				else
-				  bx dev \$*
-				fi
-				#-----------------------------------------------------------
-			!!EOF
-      $SUDO mv ~/idt $idt_prog
-      $SUDO chmod 755 $idt_prog
-      log "The following shortcuts defined to access the IBM Cloud Developer Tools CLI:"
-      log "  ${GRN}idt${NRM}           : Main command, shorthand for '${CYN}bx dev${NRM}'"
-      log "  ${GRN}idt update${NRM}    : Update your IBM Cloud Developer Tools to the latest version"
-      log "  ${GRN}idt uninstall${NRM} : Uninstall the IBM Cloud Developer Tools"
-    fi
-  elif [[ "$1" == "remove" ]]; then
-    $SUDO rm -f $idt_prog
-  else
-    error "Internal error - called with invalid parameter: ${1}"
+  if [[ "$1" == "add" && $(grep "alias ic=" $env_file) == "" ]]; then
+    #-- Add alias "ic"
+    echo 'alias ic="ibmcloud"' >> ${env_file}
+    warn "Please restart your shell to enable 'ic' alias for ibmcloud!"
   fi
 }
 
@@ -472,7 +389,6 @@ function main {
       ;;
     "update")     ACTION="install";;
     "install")    ACTION="install";;
-    "uninstall")  ACTION="uninstall";;
     "help")       ACTION="help";;
     esac
     shift
@@ -499,7 +415,6 @@ function main {
   case "$ACTION" in
   "")           install;;
   "install")    install;;
-  "uninstall")  uninstall;;
   *)            help;;
   esac
 
