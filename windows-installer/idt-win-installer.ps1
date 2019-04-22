@@ -272,6 +272,10 @@ function env_setup() {
     Write-Output "Creating 'ic' script to act as shortcut to 'ibmcloud' command..."
     $ic_batch = @"
 @ECHO OFF
+REM #-----------------------------------------------------------
+REM # IBM Cloud Shortcut
+REM # Shortcut for 'ibmcloud' command
+REM #-----------------------------------------------------------
 ibmcloud %*
 "@
     $ic_command = 'C:\Program Files\IBM\Cloud\bin\ic.bat'

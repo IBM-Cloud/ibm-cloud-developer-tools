@@ -15,7 +15,7 @@
 
 ## Summary
 
-PowerShell script that downloads and installs the IBM Cloud Developer Tools (IDT) CLI Plugin and all of its dependencies on Windows 10 or newer systems. The IDT consists of the 'dev' (and several other) plugins to the IBM Cloud CLI. Our general target environment is the IBM Cloud, including public, dedicated, and local hybrid.
+PowerShell script that downloads and installs the IBM Cloud CLI, plugins and all of its dependencies on Windows 10 or newer systems. The CLI consists of the 'dev' (and several other) plugins to the IBM Cloud CLI. Our general target environment is the IBM Cloud, including public, dedicated, and local hybrid.
 
 
 ## Installation
@@ -29,10 +29,8 @@ This action will install (or update) the IBM Cloud Developer Tools to your windo
 Set-ExecutionPolicy Unrestricted; iex(New-Object Net.WebClient).DownloadString('http://ibm.biz/idt-win-installer')
 ```
 
-Once the installation has completed, and you have rebooted your system (as needed), there will be three added shortcuts defined to access the IDT:
-- `ibmcloud dev` : Main command line tool for IBM cloud native development
-- `ibmcloud dev update` : Update your IDT environment to the latest versions
-- `ibmcloud dev uninstall` : Uninstall the IBM Developer Tools
+Once the installation has completed, and you have rebooted your system (as needed), there will be an added shortcut defined to access the IBM Cloud cli:
+- `ic`: shortcut for the `ibmcloud` command
 
 
 ### Running from Download
@@ -56,9 +54,9 @@ Set-ExecutionPolicy Unrestricted
 .\idt-win-installer.ps1 --trace
 ```
 
-If updating an existing IDT installation, you can run the following:
+If updating an existing IBM Cloud CLI installation, you can run the following:
 ```
-ibmcloud dev update --trace
+ibmcloud update --trace
 ```
 
 
@@ -67,7 +65,7 @@ ibmcloud dev update --trace
 If you wish to update the IBM Developer Tools CLI, run:
 
 ```
-ibmcloud dev update [--force] [--trace]
+ibmcloud plugin update dev [--force] [--trace]
 ```
 
 The `--force` argument that will force update to all dependencies too.
@@ -76,20 +74,6 @@ This command is simply a shortcut defined during initial install that runs (in a
 
 ```
 PowerShell -NoProfile -ExecutionPolicy Unrestricted -Command "& {Start-Process PowerShell -ArgumentList '-NoProfile -ExecutionPolicy Unrestricted ""iex(New-Object Net.WebClient).DownloadString(""""http://ibm.biz/idt-win-installer"""")"" ""%2"" ""%3"" ' -Verb RunAs}"
-```
-
-## Uninstall
-
-If you wish to remove the IBM Developer Tools CLI, run:
-
-```
-ibmcloud dev uninstall [--trace]
-```
-
-This command is simply a shortcut defined during install that runs (in admin mode)  the installer's uninstall action as shown here:
-
-```
-PowerShell -NoProfile -ExecutionPolicy Unrestricted -Command "& {Start-Process PowerShell -ArgumentList '-NoProfile -ExecutionPolicy Unrestricted ""iex(New-Object Net.WebClient).DownloadString(""""http://ibm.biz/idt-win-installer"""")"" ""uninstall"" ""%2"" ' -Verb RunAs}"
 ```
 
 
@@ -108,7 +92,6 @@ Usage: idt-win-installer [<args>]
 
 Where <args> is:
     install | update    [Default] Perform full install (or update) of all needed CLIs and Plugins
-    uninstall           Uninstall full IBM Cloud CLI env, including 'ibmcloud', and plugins
     help | -h | -?      Show this help
     --force             Force updates of dependencies and other settings during update
     --trace             Eanble verbose tracing of all activity
@@ -119,12 +102,8 @@ If "install" (or no action provided), a full CLI installation (or update) will o
   2. Install latest IBM Cloud 'ibmcloud' CLI
   3. Install all required plugins
   4. Defines aliases to improve useability
-      - idt : Shortcut for normal "ibmcloud dev" command
-      - idt update : Runs this installer checking for and installing any updates
-      - idt uninstall : Uninstalls IDT, including the 'ibmcloud cli' and all plugins
+      - ic : Shortcut for "ibmcloud" command
 
-If "uninstall", the IBM Cloud CLI and plugins are removed from the system, including personal metadata.
-    Note: Pre-req CLIs listed above are NOT uninstalled.
 
 Chat with us on Slack: https://slack-invite-ibm-cloud-tech.mybluemix.net/
 Submit any issues to : https://github.com/IBM-Cloud/ibm-cloud-developer-tools/issues
