@@ -351,7 +351,11 @@ function install_bx {
     log "IBM Cloud 'bx' CLI install finished."
   else #-- Upgrade
     log "Updating existing IBM Cloud 'bx' CLI..."
-    bx update
+    if [[ "$FORCE" == true ]]; then
+      bx update -f
+    else
+      bx update
+    fi
   fi
   log "Running 'bx --version'..."
   bx --version
