@@ -168,7 +168,7 @@ function install_deps {
   "Linux")
     if [[ "${DISTRO}" == *Ubuntu* || "${DISTRO}" == *Debian* ]]; then
       install_deps_with_apt_get
-    elif [[ "${DISTRO}" == *Red*Hat* || "${DISTRO}" == *CentOS* || "${DISTRO}" == *RHEL* ]]; then
+    elif [[ "${DISTRO}" == *Red*Hat* || "${DISTRO}" == *CentOS* || "${DISTRO}" == *RHEL* || "${DISTRO}" == *Fedora* ]]; then
       install_deps_with_yum
     else
       error "This script has not been updated for use with your linux distribution (${DISTRO})"
@@ -501,8 +501,8 @@ function main {
   "Linux")
     # Linux distro, e.g "Ubuntu", "RedHatEnterpriseWorkstation", "RedHatEnterpriseServer", "CentOS", "Debian"
     DISTRO=$(lsb_release -ds 2>/dev/null || cat /etc/*release 2>/dev/null | head -n1 || uname -om || echo "")
-    if [[ "$DISTRO" != *Ubuntu* &&  "$DISTRO" != *Red*Hat* && "$DISTRO" != *CentOS* && "$DISTRO" != *Debian* && "$DISTRO" != *RHEL* ]]; then
-      warn "Linux has only been tested on Ubuntu, RedHat, Centos & Debian distrubutions please let us know if you use this utility on other Distros"
+    if [[ "$DISTRO" != *Ubuntu* &&  "$DISTRO" != *Red*Hat* && "$DISTRO" != *CentOS* && "$DISTRO" != *Debian* && "$DISTRO" != *RHEL* && "$DISTRO" != *Fedora* ]]; then
+      warn "Linux has only been tested on Ubuntu, RedHat, Centos, Debian and Fedora distrubutions please let us know if you use this utility on other Distros"
     fi
     ;;
   *)
