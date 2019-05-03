@@ -239,7 +239,14 @@ function add_to_path {
 function install_bx() {
   if( get-command bx -erroraction 'silentlycontinue') {
       Write-Output "ibmcloud already installed"
-      bx update
+      if( $Global:FORCE ){
+        # User wants forced update
+        bx update -f
+      } else {
+        # User will be prompted if they want to update
+        bx update
+      }
+      
   } else {
     log "Installing 'ibmcloud' CLI for Windows..."
     $url = $Global:IDT_INSTALL_BMX_URL + "/powershell"
