@@ -56,7 +56,7 @@ Set-ExecutionPolicy Unrestricted
 
 If updating an existing IBM Cloud CLI installation, you can run the following:
 ```
-ibmcloud update --trace
+ibmcloud update
 ```
 
 
@@ -65,10 +65,8 @@ ibmcloud update --trace
 If you wish to update the IBM Developer Tools CLI, run:
 
 ```
-ibmcloud plugin update dev [--force] [--trace]
+ibmcloud plugin update dev
 ```
-
-The `--force` argument that will force update to all dependencies too.
 
 This command is simply a shortcut defined during initial install that runs (in admin mode) the installer as shown here:
 

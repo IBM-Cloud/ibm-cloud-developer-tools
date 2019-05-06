@@ -51,17 +51,17 @@ curl -sL https://ibm.biz/idt-installer | bash -s -- --trace
 
 If you wish to update the IBM Cloud Dev Plugin, run:
 ```
-ibmcloud plugin update dev --trace
+ibmcloud plugin update dev
 ```
 
 
 ## Updating
 
-If you wish to update the IBM Cloud Dev Plugin, run `ibmcloud plugin update dev`. There is also a `--force` argument that will force update to all dependencies too.
+If you wish to update the IBM Cloud Dev Plugin, run `ibmcloud plugin update dev`.
 
 Syntax:
 ```
-ibmcloud plugin update dev [--force] [--trace]
+ibmcloud plugin update dev
 ```
 
 
