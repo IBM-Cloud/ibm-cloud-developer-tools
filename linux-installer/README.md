@@ -37,8 +37,8 @@ $ curl -sL https://ibm.biz/idt-installer | bash
 
 Once complete, there will be three added shortcuts defined to access the IDT:
 - `ibmcloud dev` : Main command line tool for IBM cloud native development
-- `ibmcloud dev update` : Update your IDT environment to the latest versions
-- `ibmcloud dev uninstall` : Uninstall the IBM Developer Tools
+- `ibmcloud update` : Update your IBM Cloud CLI to the latest version
+- `ibmcloud plugin update` : Update IBM Cloud plugins to the latest versions
 
 
 ### Debugging
@@ -49,43 +49,20 @@ If you have any issues with the installer, try running with the `--trace` argume
 curl -sL https://ibm.biz/idt-installer | bash -s -- --trace
 ```
 
-If updating an existing IDT installation, you can run the following:
+If you wish to update the IBM Cloud Dev Plugin, run:
 ```
-idt update --trace
+ibmcloud plugin update dev
 ```
 
 
 ## Updating
 
-If you wish to update the IBM Developer Tools CLI, run `ibmcloud dev update`. There is also a `--force` argument that will force update to all dependencies too.
+If you wish to update the IBM Cloud Dev Plugin, run `ibmcloud plugin update dev`.
 
 Syntax:
 ```
-ibmcloud dev update [--force] [--trace]
+ibmcloud plugin update dev
 ```
-
-This command is simply an alias defined during initial install that runs the installer shown here:
-
-```
-$ curl -sL https://ibm.biz/idt-installer | bash -c -- [--force]
-```
-
-
-## Uninstall
-
-If you wish to remove the IBM Developer Tools CLI, run `ibmcloud dev uninstall`. 
-
-Syntax:
-```
-ibmcloud dev uninstall [--trace]
-```
-
-This command is simply an alias defined during install that runs the following:
-
-```
-$ curl -sL https://ibm.biz/idt-installer | bash -c -- uninstall
-```
-
 
 
 ## Pre-Requisites
@@ -103,7 +80,6 @@ Usage: idt-installer [<args>]
 
 Where <args> is:
     install | update    [Default] Perform full install (or update) of all needed CLIs and Plugins
-    uninstall           Uninstall full IBM Cloud CLI env, including 'ibmcloud', and plugins
     help | -h | -?      Show this help
     --force             Force updates of dependencies and other settings during update
     --trace             Eanble verbose tracing of all activity
@@ -114,12 +90,8 @@ If "install" (or no action provided), a full CLI installation (or update) will o
   2. Install latest IBM Cloud 'ibmcloud' CLI
   3. Install all required plugins
   4. Defines aliases to improve useability
-      - idt : Shortcut for normal "ibmcloud dev" command
-      - idt update : Runs this installer checking for and installing any updates
-      - idt uninstall : Uninstalls IDT, including the 'ibmcloud cli' and all plugins
+      - ic : Shortcut for "ibmcloud" command
 
-If "uninstall", the IBM Cloud CLI and plugins are removed from the system, including personal metadata.
-    Note: Pre-req CLIs listed above are NOT uninstalled.
 
 Chat with us on Slack: https://slack-invite-ibm-cloud-tech.mybluemix.net/
 Submit any issues to : https://github.com/IBM-Cloud/ibm-cloud-developer-tools/issues

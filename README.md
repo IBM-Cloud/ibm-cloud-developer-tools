@@ -22,10 +22,9 @@ The following command will install the IBM Cloud Developer Tools in a single inv
 $ curl -sL https://ibm.biz/idt-installer | bash
 ```
 
-Once complete, there will be three shortcuts defined to access the IBM Cloud Developer Tools:
-- `idt` : Main command line tool
-- `idt update` : Update your IBM Cloud Developer Tools to the latest versions
-- `idt uninstall` : Uninstall the IBM Cloud Developer Tools
+Once complete, there will be a shortcut defined to access the IBM Cloud CLI:
+- `ic` : Shortcut for the 'ibmcloud' command
+
 
 Access the [platform-specific readme](./linux-installer/README.md) for additional details.
 
