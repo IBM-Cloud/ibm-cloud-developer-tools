@@ -382,7 +382,7 @@ function install_plugins {
     read -r p ver <<< "$(bx plugin list | grep "^${plugin} ")"
     if [[ -z "$p" ]]; then
       log "Installing plugin '$plugin'"
-      bx plugin install -r "${IDT_INSTALL_BMX_REPO_NAME}" "$plugin"
+      bx plugin install -f -r "${IDT_INSTALL_BMX_REPO_NAME}" "$plugin"
     else
       log "Updating plugin '$plugin' from version '$ver'"
       bx plugin update -r "${IDT_INSTALL_BMX_REPO_NAME}" "$plugin"
