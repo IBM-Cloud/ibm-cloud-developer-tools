@@ -267,7 +267,7 @@ function install_plugins {
         iex "$bx_command plugin update -r $Global:IDT_INSTALL_BMX_REPO_NAME $plugin"
     } else {
         log "Installing plugin '$plugin'"
-        iex "$bx_command plugin install -r $Global:IDT_INSTALL_BMX_REPO_NAME $plugin"
+        iex "$bx_command plugin install -f -r $Global:IDT_INSTALL_BMX_REPO_NAME $plugin"
     }
   }
   log "Running 'ibmcloud plugin list'..."
