@@ -190,6 +190,9 @@ function install_deps_with_apt_get {
     if [[ -z "$(which add-apt-repository)" ]]; then
       $SUDO apt-get install -y software-properties-common python-software-properties
     fi
+    if [[ -z "$(which add-apt-repository)" ]]; then
+      $SUDO apt-get install -y python-software-properties
+    fi
     $SUDO add-apt-repository -y ppa:git-core/ppa
     $SUDO apt-get -y update
 
