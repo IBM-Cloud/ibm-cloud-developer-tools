@@ -317,6 +317,7 @@ function install_plugins {
   #-- BX plugins to process
   PLUGINS=(
     "cloud-functions"
+    "cloud-object-storage"
     "container-registry"
     "container-service"
     "dev"
