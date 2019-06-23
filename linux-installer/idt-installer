@@ -117,7 +117,7 @@ function install_deps {
       install_darwin_deps
     ;;
   "Linux")
-    if [[ "${DISTRO}" == *Ubuntu* || "${DISTRO}" == *Debian* ]]; then
+    if [[ "${DISTRO}" == *Ubuntu* || "${DISTRO}" == *Debian* || "${DISTRO}" == *Pop!_OS* ]]; then
       install_deps_with_apt_get
     elif [[ "${DISTRO}" == *Red*Hat* || "${DISTRO}" == *CentOS* || "${DISTRO}" == *RHEL* || "${DISTRO}" == *Fedora* ]]; then
       install_deps_with_yum
