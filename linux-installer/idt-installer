@@ -119,7 +119,7 @@ function install_deps {
   "Linux")
     if [[ "${DISTRO}" == *Ubuntu* || "${DISTRO}" == *Debian* ]]; then
       install_deps_with_apt_get
-    elif [[ "${DISTRO}" == *Red*Hat* || "${DISTRO}" == *CentOS* || "${DISTRO}" == *RHEL* || "${DISTRO}" == *Fedora* || "${DISTRO}" == *openSUSE*Tumbleweed*]]; then
+    elif [[ "${DISTRO}" == *openSUSE*Tumbleweed* || "${DISTRO}" == *CentOS* || "${DISTRO}" == *RHEL* || "${DISTRO}" == *Fedora* ]]; then
       install_deps_with_yum
     else
       error "This script has not been updated for use with your linux distribution (${DISTRO})"
@@ -388,7 +388,7 @@ function main {
   (( SECS = SECONDS ))
 
   TMPDIR=${TMPDIR:-"/tmp"}
-  PLATFORM=$(uname)
+  PLATFORM="fedora"
   ACTION=""
 
   # Only use sudo if not running as root:
