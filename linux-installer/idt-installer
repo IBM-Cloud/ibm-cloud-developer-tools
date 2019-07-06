@@ -417,8 +417,8 @@ function main {
     ;;
   "Linux")
     # Linux distro, e.g "Ubuntu", "RedHatEnterpriseWorkstation", "RedHatEnterpriseServer", "CentOS", "Debian"
-    DISTRO=$(lsb_release -ds 2>/dev/null || cat /etc/*release 2>/dev/null | head -n1 || uname -om || echo "")
-    if[["$DISTRO"==*openSUSE*Tumbleweed*]]; then
+    DISTRO=$(lsb_release -ds 2>/dev/null || cat /etc/*release 2>/dev/null | head -n1 || uname -om || echo "");
+    if["$DISTRO"==*openSUSE*Tumbleweed*]; then
       DISTRO=*Fedora* #because openSuse Tumbleweed has the same instalation process as fedora has.
     fi
     if [[ "$DISTRO" != *Ubuntu* &&  "$DISTRO" != *Red*Hat* && "$DISTRO" != *CentOS* && "$DISTRO" != *Debian* && "$DISTRO" != *RHEL* && "$DISTRO" != *Fedora* ]]; then
