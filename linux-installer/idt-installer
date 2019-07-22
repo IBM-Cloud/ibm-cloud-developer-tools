@@ -321,7 +321,6 @@ function install_plugins {
     "container-registry"
     "container-service"
     "dev"
-    "sdk-gen"
   )
 
   log "Installing/updating IBM Cloud CLI plugins..."
