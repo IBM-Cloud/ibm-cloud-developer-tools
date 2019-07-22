@@ -249,8 +249,7 @@ function install_plugins {
   $plugins = "Cloud-Functions",
              "container-registry",
              "container-service",
-             "dev",
-             "sdk-gen"
+             "dev"
   
   $bx_command = get-command bx -erroraction 'silentlycontinue'
   if( $bx_command )  {
