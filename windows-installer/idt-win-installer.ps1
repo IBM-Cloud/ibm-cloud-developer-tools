@@ -34,7 +34,7 @@ function help {
 
   If "install", "update", or no action, a full CLI installation (or update) will occur:
   1. Pre-req check for 'git', 'docker', 'kubectl', and 'helm'
-  2. Install latest IBM Cloud 'bx' CLI
+  2. Install latest IBM Cloud 'ibmcloud' CLI
   3. Install all required plugins 
 
   Chat with us on Slack: $Global:SLACK_URL, channel #developer-tools
@@ -95,13 +95,13 @@ function install() {
   log "Starting Installation/Update..."
 
   #-- Check if internal IBM setup
-  $bx_command = get-command bx -erroraction 'silentlycontinue'
-  if( $bx_command )  {
+  $ibmcloud_command = get-command ibmcloud -erroraction 'silentlycontinue'
+  if( $ibmcloud_command )  {
      # The command is set, use it
   } else {
-    $bx_command = 'C:\"Program Files"\IBM\Cloud\bin\bx.exe'
+    $ibmcloud_command = 'C:\"Program Files"\IBM\Cloud\bin\ibmcloud.exe'
   }
-  $pluginlist = iex "$bx_command plugin list"
+  $pluginlist = iex "$ibmcloud_command plugin list"
   if($pluginlist -match "\bstage\b") {
     Write-Output
     $reply = Read-Host -Prompt "Use IBM internal repos for install/updates (Y/n)?"
@@ -114,7 +114,7 @@ function install() {
   }
 
   install_deps
-  install_bx
+  install_ibmcloud
   install_plugins
   env_setup add
 
@@ -213,15 +213,15 @@ function add_to_path {
 
 #------------------------------------------------------------------------------
 #-- Install IBM Cloud CLI.
-function install_bx() {
-  if( get-command bx -erroraction 'silentlycontinue') {
+function install_ibmcloud() {
+  if( get-command ibmcloud -erroraction 'silentlycontinue') {
       Write-Output "ibmcloud already installed"
       if( $Global:FORCE ){
         # User wants forced update
-        bx update -f
+        ibmcloud update -f
       } else {
         # User will be prompted if they want to update
-        bx update
+        ibmcloud update
       }
       
   } else {
@@ -233,13 +233,13 @@ function install_bx() {
     $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User") 
   }
   log "IBM Cloud CLI version:"
-  $bx_command = get-command bx -erroraction 'silentlycontinue'
-  if( $bx_command )  {
+  $ibmcloud_command = get-command ibmcloud -erroraction 'silentlycontinue'
+  if( $ibmcloud_command )  {
      # The command is set, use it
   } else {
-    $bx_command = 'C:\"Program Files"\IBM\Cloud\bin\bx.exe'
+    $ibmcloud_command = 'C:\"Program Files"\IBM\Cloud\bin\ibmcloud.exe'
   }
-  iex "$bx_command --version"
+  iex "$ibmcloud_command --version"
 }
 
 #------------------------------------------------------------------------------
@@ -251,26 +251,26 @@ function install_plugins {
              "container-service",
              "dev"
   
-  $bx_command = get-command bx -erroraction 'silentlycontinue'
-  if( $bx_command )  {
+  $ibmcloud_command = get-command ibmcloud -erroraction 'silentlycontinue'
+  if( $ibmcloud_command )  {
      # The command is set, use it
   } else {
-    $bx_command = 'C:\"Program Files"\IBM\Cloud\bin\bx.exe'
+    $ibmcloud_command = 'C:\"Program Files"\IBM\Cloud\bin\ibmcloud.exe'
   }
-  $pluginlist = iex "$bx_command plugin list"
+  $pluginlist = iex "$ibmcloud_command plugin list"
 
   Foreach ($plugin in $plugins) {
     log "Checking status of plugin: $plugin"
     if($pluginlist -match "\b$plugin\b") {
         log "Updating plugin '$plugin'"
-        iex "$bx_command plugin update -r $Global:IDT_INSTALL_BMX_REPO_NAME $plugin"
+        iex "$ibmcloud_command plugin update -r $Global:IDT_INSTALL_BMX_REPO_NAME $plugin"
     } else {
         log "Installing plugin '$plugin'"
-        iex "$bx_command plugin install -f -r $Global:IDT_INSTALL_BMX_REPO_NAME $plugin"
+        iex "$ibmcloud_command plugin install -f -r $Global:IDT_INSTALL_BMX_REPO_NAME $plugin"
     }
   }
   log "Running 'ibmcloud plugin list'..."
-  iex "$bx_command plugin list"
+  iex "$ibmcloud_command plugin list"
   log "Finished installing/updating plugins"
 }
 
