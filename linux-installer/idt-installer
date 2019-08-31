@@ -37,7 +37,7 @@ function help {
   Chat with us on Slack: ${SLACK_URL}, channel #developer-tools
   Submit any issues to : ${GIT_URL}/issues
 
-  !!EOF
+!!EOF
 }
 
 
@@ -492,4 +492,3 @@ function main {
 #-- Kick things off
 #------------------------------------------------------------------------------
 main "$@"
-
