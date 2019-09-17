@@ -249,7 +249,7 @@ function install_plugins {
   $plugins = "Cloud-Functions",
              "container-registry",
              "container-service",
-             "dev"
+             "dev",
              "vpc-infrastructure"
   
   $ibmcloud_command = get-command ibmcloud -erroraction 'silentlycontinue'
