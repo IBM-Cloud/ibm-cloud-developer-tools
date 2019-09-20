@@ -321,6 +321,7 @@ function install_plugins {
     "container-registry"
     "container-service"
     "dev"
+    "vpc-infrastructure"
   )
 
   log "Installing/updating IBM Cloud CLI plugins..."
