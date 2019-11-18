@@ -173,10 +173,10 @@ function install_darwin_deps {
     #-- helm:
     log "Installing/updating external dependency: helm"
     if [[ -z "$(which helm)" ]]; then
-      brew install kubernetes-helm
+      brew install helm
       log  "Please review any setup requirements for 'helm' from: https://github.com/kubernetes/helm/blob/master/docs/install.md"
     elif [[ "$FORCE" == true ]]; then
-      brew upgrade kubernetes-helm
+      brew upgrade helm
     fi
 }
 
