@@ -12,9 +12,9 @@ PROG="IBM Cloud Developer Tools for Linux/MacOS - Installer"
 INSTALLER_URL="https://ibm.biz/idt-installer"
 GIT_URL="https://github.com/IBM-Cloud/ibm-cloud-developer-tools"
 SLACK_URL="https://slack-invite-ibm-cloud-tech.mybluemix.net/"
-IDT_INSTALL_BMX_URL="https://clis.ng.bluemix.net/install"
+IDT_INSTALL_BMX_URL="https://clis.cloud.ibm.com/install"
 IDT_INSTALL_BMX_REPO_NAME="Bluemix"
-IDT_INSTALL_BMX_REPO_URL="https://plugins.ng.bluemix.net"
+IDT_INSTALL_BMX_REPO_URL="https://plugins.cloud.ibm.com"
 
 #------------------------------------------------------------------------------
 function help {
