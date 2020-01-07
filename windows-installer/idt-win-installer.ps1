@@ -135,7 +135,7 @@ function install_deps() {
     
     log "Installing/updating external dependency: git"
     $gitVersion = (Invoke-WebRequest "https://git-scm.com/downloads/latest" -UseBasicParsing).Content
-    Invoke-WebRequest "https://github.com/git-for-windows/git/releases/download/v$gitVersion.windows.1/Git-$gitVersion-64-bit.exe" -UseBasicParsing -outfile "git-installer.exe"
+    Invoke-WebRequest "https://github.com/git-for-windows/git/releases/download/v$gitVersion.windows.2/Git-$gitVersion-64-bit.exe" -UseBasicParsing -outfile "git-installer.exe"
     .\git-installer.exe /SILENT /PathOption="Cmd" | Out-Null
     Remove-Item "git-installer.exe"
     $Global:NEEDS_REBOOT = $true
