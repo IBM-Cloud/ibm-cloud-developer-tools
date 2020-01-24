@@ -11,9 +11,9 @@ $Global:PROG="IBM Cloud Developer Tools - Installer for Windows"
 $Global:INSTALLER_URL="https://ibm.biz/idt-win-installer"
 $Global:GIT_URL="https://github.com/IBM-Cloud/ibm-cloud-developer-tools"
 $Global:SLACK_URL="https://slack-invite-ibm-cloud-tech.mybluemix.net/"
-$Global:IDT_INSTALL_BMX_URL="https://clis.ng.bluemix.net/install"
+$Global:IDT_INSTALL_BMX_URL="https://clis.cloud.ibm.com/install"
 $Global:IDT_INSTALL_BMX_REPO_NAME="Bluemix"
-$Global:IDT_INSTALL_BMX_REPO_URL="https://plugins.ng.bluemix.net"
+$Global:IDT_INSTALL_BMX_REPO_URL="https://plugins.cloud.ibm.com"
 
 $Global:FORCE = $false
 $Global:NEEDS_REBOOT = $false
