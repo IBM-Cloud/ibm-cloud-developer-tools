@@ -12,9 +12,9 @@ PROG="IBM Cloud Developer Tools for Linux/MacOS - Installer"
 INSTALLER_URL="https://ibm.biz/idt-installer"
 GIT_URL="https://github.com/IBM-Cloud/ibm-cloud-developer-tools"
 SLACK_URL="https://slack-invite-ibm-cloud-tech.mybluemix.net/"
-IDT_INSTALL_BMX_URL="https://clis.ng.bluemix.net/install"
+IDT_INSTALL_BMX_URL="https://clis.cloud.ibm.com/install"
 IDT_INSTALL_BMX_REPO_NAME="Bluemix"
-IDT_INSTALL_BMX_REPO_URL="https://plugins.ng.bluemix.net"
+IDT_INSTALL_BMX_REPO_URL="https://plugins.cloud.ibm.com"
 
 #------------------------------------------------------------------------------
 function help {
@@ -31,7 +31,7 @@ function help {
 
   If "install" (or no action provided), a full CLI installation (or update) will occur:
   1. Pre-req check for 'git', 'docker', 'kubectl', and 'helm'
-  2. Install latest IBM Cloud 'bx' CLI
+  2. Install latest IBM Cloud 'ibmcloud' CLI
   3. Install all required plugins
 
   Chat with us on Slack: ${SLACK_URL}, channel #developer-tools
@@ -79,15 +79,15 @@ function prompt {
 
 #------------------------------------------------------------------------------
 function install {
-  if [[ -n "$(which bx)" ]]; then
+  if [[ -n "$(which ibmcloud)" ]]; then
     log "Starting Installation..."
   else
     log "Starting Update..."
   fi
   
   #-- Check if internal IBM setup
-  if [[ -n "$(which bx)" ]]; then
-    read -r repo url <<< $(bx plugin repos | grep stage1)
+  if [[ -n "$(which ibmcloud)" ]]; then
+    read -r repo url <<< $(ibmcloud plugin repos | grep stage1)
     if [[ -n "$repo" ]]; then
       echo
       prompt "Use IBM internal '$repo' repos for install/updates (Y/n)?"
@@ -102,7 +102,7 @@ function install {
   [ "$SUDO" ] && log "Note: You may be prompted for your 'sudo' password during install."
 
   install_deps
-  install_bx
+  install_ibmcloud
   install_plugins
   env_setup add
 
@@ -290,57 +290,57 @@ function install_docker {
 }
 
 #------------------------------------------------------------------------------
-function install_bx {
-  if [[ -z "$(which bx)" ]]; then
-    log "Installing IBM Cloud 'bx' CLI for platform '${PLATFORM}'..."
+function install_ibmcloud {
+  if [[ -z "$(which ibmcloud)" ]]; then
+    log "Installing IBM Cloud 'ibmcloud' CLI for platform '${PLATFORM}'..."
     case "$PLATFORM" in
     "Darwin")
-      log "Downloading and installing IBM Cloud 'bx' CLI from: ${IDT_INSTALL_BMX_URL}/osx"
+      log "Downloading and installing IBM Cloud 'ibmcloud' CLI from: ${IDT_INSTALL_BMX_URL}/osx"
       sh <(curl -fsSL ${IDT_INSTALL_BMX_URL}/osx)
       ;;
     "Linux")
-      log "Downloading and installing IBM Cloud 'bx' CLI from: ${IDT_INSTALL_BMX_URL}/linux"
+      log "Downloading and installing IBM Cloud 'ibmcloud' CLI from: ${IDT_INSTALL_BMX_URL}/linux"
       sh <(curl -fsSL ${IDT_INSTALL_BMX_URL}/linux)
       ;;
     esac
-    log "IBM Cloud 'bx' CLI install finished."
+    log "IBM Cloud 'ibmcloud' CLI install finished."
   else #-- Upgrade
-    log "Updating existing IBM Cloud 'bx' CLI..."
+    log "Updating existing IBM Cloud 'ibmcloud' CLI..."
     if [[ "$FORCE" == true ]]; then
-      bx update -f
+      ibmcloud update -f
     else
-      bx update
+      ibmcloud update
     fi
   fi
-  log "Running 'bx --version'..."
-  bx --version
+  log "Running 'ibmcloud --version'..."
+  ibmcloud --version
 }
 
 #------------------------------------------------------------------------------
 function install_plugins {
-  #-- BX plugins to process
+  #-- ibmcloud plugins to process
   PLUGINS=(
     "cloud-functions"
+    "cloud-object-storage"
     "container-registry"
     "container-service"
     "dev"
-    "sdk-gen"
   )
 
   log "Installing/updating IBM Cloud CLI plugins..."
   for plugin in "${PLUGINS[@]}"; do
     log "Checking status of plugin: ${plugin}"
-    read -r p ver <<< "$(bx plugin list | grep "^${plugin} ")"
+    read -r p ver <<< "$(ibmcloud plugin list | grep "^${plugin} ")"
     if [[ -z "$p" ]]; then
       log "Installing plugin '$plugin'"
-      bx plugin install -f -r "${IDT_INSTALL_BMX_REPO_NAME}" "$plugin"
+      ibmcloud plugin install -f -r "${IDT_INSTALL_BMX_REPO_NAME}" "$plugin"
     else
       log "Updating plugin '$plugin' from version '$ver'"
-      bx plugin update -r "${IDT_INSTALL_BMX_REPO_NAME}" "$plugin"
+      ibmcloud plugin update -r "${IDT_INSTALL_BMX_REPO_NAME}" "$plugin"
     fi
   done
-  log "Running 'bx plugin list'..."
-  bx plugin list
+  log "Running 'ibmcloud plugin list'..."
+  ibmcloud plugin list
   log "Finished installing/updating plugins"
 }
 
@@ -355,11 +355,11 @@ function env_setup {
 
 
   #-- Clear up any old aliases
-  if [[ -n "$(grep 'alias idt="bx dev"' "$env_file")" ]]; then
+  if [[ -n "$(grep 'alias idt="ibmcloud dev"' "$env_file")" ]]; then
     log "Removing old 'idt' aliases from: ${env_file}"
     sed -E -i ".idt_uninstall_bak" \
           -e '/^#-- Added by the IDT Installer$/d' \
-          -e '/^alias idt=\"bx dev\"$/d' \
+          -e '/^alias idt=\"ibmcloud dev\"$/d' \
           -e '/^alias idt-update=/d' \
           -e '/^alias idt-uninstall=/d' \
           ${env_file}
