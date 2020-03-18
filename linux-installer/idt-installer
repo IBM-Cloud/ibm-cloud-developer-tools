@@ -186,8 +186,16 @@ function install_deps_with_apt_get {
     if [[ -z "$(which apt-get)" ]]; then
       error "'apt-get' is not found.  That's the only Debian/Ubuntu linux installer I know, sorry."
     fi
+    $SUDO apt-get -y -qq update > /dev/null
     if [[ -z "$(which add-apt-repository)" ]]; then
-      $SUDO apt-get install -y software-properties-common python-software-properties
+      if [ "$(apt-cache search software-properties-common | wc -l)" != "0" ]; then
+        log "Installing package: software-properties-common"
+        $SUDO apt-get install -yqq software-properties-common > /dev/null 2>&1
+      fi
+      if [ "$(apt-cache search python-software-properties | wc -l)" != "0" ]; then
+        log "Installing package: python-software-properties"
+        $SUDO apt-get install -yqq python-software-properties > /dev/null 2>&1
+      fi
     fi
     $SUDO add-apt-repository -y ppa:git-core/ppa
     $SUDO apt-get -y update
