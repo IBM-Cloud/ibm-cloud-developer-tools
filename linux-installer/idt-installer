@@ -328,6 +328,7 @@ function install_plugins {
     "cloud-object-storage"
     "container-registry"
     "container-service"
+    "dev"
   )
 
   log "Installing/updating IBM Cloud CLI plugins..."
