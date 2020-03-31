@@ -248,8 +248,7 @@ function install_plugins {
   log "Installing/updating IBM Cloud CLI plugins..."
   $plugins = "Cloud-Functions",
              "container-registry",
-             "container-service",
-             "dev"
+             "container-service"
   
   $ibmcloud_command = get-command ibmcloud -erroraction 'silentlycontinue'
   if( $ibmcloud_command )  {
