@@ -154,10 +154,10 @@ function install_darwin_deps {
     #-- Docker:
     log "Installing/updating external dependency: docker"
     if [[ -z "$(which docker)" ]]; then
-      brew cask install docker
+      brew install --cask docker
       log  "Please review any setup requirements for 'docker' from: https://docs.docker.com/engine/installation/"
     elif [[ "$FORCE" == true ]]; then
-      brew cask reinstall docker
+      brew reinstall --cask docker
     fi
 
      #-- kubectl:
