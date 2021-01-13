@@ -354,6 +354,7 @@ function env_setup {
   if   [[ -f ~/.bashrc ]]      ; then env_file=~/.bashrc
   elif [[ -f ~/.bash_profile ]]; then env_file=~/.bash_profile
   elif [[ -f ~/.profile ]]     ; then env_file=~/.profile
+  elif [[ -f ~/.zshrc ]]       ; then env_file=~/.zshrc
   fi
 
 
