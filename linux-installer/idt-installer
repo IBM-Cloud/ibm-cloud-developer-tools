@@ -178,6 +178,9 @@ function install_darwin_deps {
     elif [[ "$FORCE" == true ]]; then
       brew upgrade kubernetes-helm
     fi
+    
+    #-- oc:
+    install_oc
 }
 
 #------------------------------------------------------------------------------
@@ -232,6 +235,9 @@ function install_deps_with_apt_get {
       curl -fsSL https://raw.githubusercontent.com/kubernetes/helm/master/scripts/get | bash
       log  "Please review any setup requirements for 'helm' from: https://github.com/kubernetes/helm/blob/master/docs/install.md"
     fi
+    
+    #-- oc:
+    install_oc
 }
 
 #------------------------------------------------------------------------------
@@ -272,6 +278,9 @@ function install_deps_with_yum {
       curl -fsSL https://raw.githubusercontent.com/kubernetes/helm/master/scripts/get | bash
       log  "Please review any setup requirements for 'helm' from: https://github.com/kubernetes/helm/blob/master/docs/install.md"
     fi
+
+    #-- oc:
+    install_oc
 }
 
 #------------------------------------------------------------------------------
@@ -291,6 +300,18 @@ function install_docker {
       log  "Please review any setup requirements for 'docker' from: https://docs.docker.com/engine/installation/"
     fi
     docker version
+}
+
+#------------------------------------------------------------------------------
+function install_oc {
+
+    #-- OpenShift oc:
+    log "Installing/updating external dependency: oc"
+    curl --progress-bar -LO https://mirror.openshift.com/pub/openshift-v4/clients/oc/latest/linux/oc.tar.gz
+    tar -xzvf oc.tar.gz oc
+    chmod +x oc
+    mv oc /usr/local/bin/
+    rm oc.tar.gz
 }
 
 #------------------------------------------------------------------------------
