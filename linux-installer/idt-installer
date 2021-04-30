@@ -226,12 +226,12 @@ function install_deps_with_apt_get {
       log  "Please review any setup requirements for 'kubectl' from: https://kubernetes.io/docs/tasks/tools/install-kubectl/"
     fi
 
-    #-- helm:
-    log "Installing/updating external dependency: helm"
-    if [[ -z "$(which helm)" || "$FORCE" == true ]]; then
-      curl -fsSL https://raw.githubusercontent.com/kubernetes/helm/master/scripts/get | bash
-      log  "Please review any setup requirements for 'helm' from: https://github.com/kubernetes/helm/blob/master/docs/install.md"
-    fi
+    # #-- helm:
+    # log "Installing/updating external dependency: helm"
+    # if [[ -z "$(which helm)" || "$FORCE" == true ]]; then
+    #   curl -fsSL https://raw.githubusercontent.com/kubernetes/helm/master/scripts/get | bash
+    #   log  "Please review any setup requirements for 'helm' from: https://github.com/kubernetes/helm/blob/master/docs/install.md"
+    # fi
 }
 
 #------------------------------------------------------------------------------
@@ -266,12 +266,12 @@ function install_deps_with_yum {
       log  "Please review any setup requirements for 'kubectl' from: https://kubernetes.io/docs/tasks/tools/install-kubectl/"
     fi
 
-    #-- helm:
-    log "Installing/updating external dependency: helm"
-    if [[ -z "$(which helm)" || "$FORCE" == true ]]; then
-      curl -fsSL https://raw.githubusercontent.com/kubernetes/helm/master/scripts/get | bash
-      log  "Please review any setup requirements for 'helm' from: https://github.com/kubernetes/helm/blob/master/docs/install.md"
-    fi
+    # #-- helm:
+    # log "Installing/updating external dependency: helm"
+    # if [[ -z "$(which helm)" || "$FORCE" == true ]]; then
+    #   curl -fsSL https://raw.githubusercontent.com/kubernetes/helm/master/scripts/get | bash
+    #   log  "Please review any setup requirements for 'helm' from: https://github.com/kubernetes/helm/blob/master/docs/install.md"
+    # fi
 }
 
 #------------------------------------------------------------------------------
