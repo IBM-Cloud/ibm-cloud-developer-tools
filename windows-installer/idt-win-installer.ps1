@@ -172,29 +172,29 @@ function install_deps() {
     log "Install/update completed for: kubectl"
   }
 
-  #-- helm
-  log "Checking for external dependency: helm"
-  if( -not (get-command helm -erroraction 'silentlycontinue') -or $Global:FORCE) {
-    log "Installing/updating external dependency: helm"
-  [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-    $helm_url = ((Invoke-WebRequest https://github.com/helm/helm/releases -UseBasicParsing).Links.OuterHTML | Where-Object{$_ -match '.+?windows-amd64.zip'} | Select-Object -first 1).Split('"')[1]
-    log "Helm URL : $helm_url"
-    $helm_file = $helm_url.Split("/")[-1]
-    log "Helm File: $helm_file"
-    Invoke-WebRequest $helm_url -UseBasicParsing -outfile "$helm_file"
-    mkdir "C:\Program Files\helm" -ErrorAction SilentlyContinue
-    if (-not (Get-Command Expand-7Zip -ErrorAction Ignore)) {
-        Install-Package -Scope CurrentUser -Force 7Zip4PowerShell > $null
-    }
-    Expand-7Zip $helm_file .
-    $tar_file = $helm_file.Replace('.gz','')
-    Expand-7Zip $tar_file "C:\Program Files\helm"
-    Remove-Item $helm_file -erroraction 'silentlycontinue'
-    Remove-Item $tar_file  -erroraction 'silentlycontinue'
-    add_to_path("C:\Program Files\helm\windows-amd64")
-    $Global:NEEDS_REBOOT = $true
-    log "Install/update completed for: helm"
-  }
+  # #-- helm
+  # log "Checking for external dependency: helm"
+  # if( -not (get-command helm -erroraction 'silentlycontinue') -or $Global:FORCE) {
+  #   log "Installing/updating external dependency: helm"
+  # [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+  #   $helm_url = ((Invoke-WebRequest https://github.com/helm/helm/releases -UseBasicParsing).Links.OuterHTML | Where-Object{$_ -match '.+?windows-amd64.zip'} | Select-Object -first 1).Split('"')[1]
+  #   log "Helm URL : $helm_url"
+  #   $helm_file = $helm_url.Split("/")[-1]
+  #   log "Helm File: $helm_file"
+  #   Invoke-WebRequest $helm_url -UseBasicParsing -outfile "$helm_file"
+  #   mkdir "C:\Program Files\helm" -ErrorAction SilentlyContinue
+  #   if (-not (Get-Command Expand-7Zip -ErrorAction Ignore)) {
+  #       Install-Package -Scope CurrentUser -Force 7Zip4PowerShell > $null
+  #   }
+  #   Expand-7Zip $helm_file .
+  #   $tar_file = $helm_file.Replace('.gz','')
+  #   Expand-7Zip $tar_file "C:\Program Files\helm"
+  #   Remove-Item $helm_file -erroraction 'silentlycontinue'
+  #   Remove-Item $tar_file  -erroraction 'silentlycontinue'
+  #   add_to_path("C:\Program Files\helm\windows-amd64")
+  #   $Global:NEEDS_REBOOT = $true
+  #   log "Install/update completed for: helm"
+  # }
 }
 
 #------------------------------------------------------------------------------

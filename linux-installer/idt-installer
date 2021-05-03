@@ -170,14 +170,14 @@ function install_darwin_deps {
       log  "Please review any setup requirements for 'kubectl' from: https://kubernetes.io/docs/tasks/tools/install-kubectl/"
     fi
 
-    #-- helm:
-    log "Installing/updating external dependency: helm"
-    if [[ -z "$(which helm)" ]]; then
-      brew install kubernetes-helm
-      log  "Please review any setup requirements for 'helm' from: https://github.com/kubernetes/helm/blob/master/docs/install.md"
-    elif [[ "$FORCE" == true ]]; then
-      brew upgrade kubernetes-helm
-    fi
+    # #-- helm:
+    # log "Installing/updating external dependency: helm"
+    # if [[ -z "$(which helm)" ]]; then
+    #   brew install kubernetes-helm
+    #   log  "Please review any setup requirements for 'helm' from: https://github.com/kubernetes/helm/blob/master/docs/install.md"
+    # elif [[ "$FORCE" == true ]]; then
+    #   brew upgrade kubernetes-helm
+    # fi
 }
 
 #------------------------------------------------------------------------------
