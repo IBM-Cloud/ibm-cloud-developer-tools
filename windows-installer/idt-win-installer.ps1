@@ -33,7 +33,7 @@ function help {
     --trace            Eanble verbose tracing of all activity
 
   If "install", "update", or no action, a full CLI installation (or update) will occur:
-  1. Pre-req check for 'git', 'docker', 'kubectl', and 'helm'
+  1. Pre-req check for 'git', 'docker', and 'kubectl'
   2. Install latest IBM Cloud 'ibmcloud' CLI
   3. Install all required plugins 
 
@@ -124,7 +124,7 @@ function install() {
 
 
 #------------------------------------------------------------------------------
-#-- Install dependencies - git, docker, kubectl, helm.
+#-- Install dependencies - git, docker, kubectl.
 function install_deps() {
 
   [Net.ServicePointManager]::SecurityProtocol = "Tls12, Tls11, Tls, Ssl3"
@@ -306,7 +306,7 @@ function main {
     error "This installer requires Windows 10 or higher."
   }
 
-  #-- Check for 64-bit Platform - Dev and Helm do not have 32-bit versions.
+  #-- Check for 64-bit Platform - Dev do not have 32-bit versions.
   if ([Environment]::Is64BitProcess -ne [Environment]::Is64BitOperatingSystem) {
     error "This installer requires 64-bit Windows."
   }

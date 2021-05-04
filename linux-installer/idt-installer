@@ -30,7 +30,7 @@ function help {
     --trace          Eanble verbose tracing of all activity
 
   If "install" (or no action provided), a full CLI installation (or update) will occur:
-  1. Pre-req check for 'git', 'docker', 'kubectl', and 'helm'
+  1. Pre-req check for 'git', 'docker', and 'kubectl'
   2. Install latest IBM Cloud 'ibmcloud' CLI
   3. Install all required plugins
 
