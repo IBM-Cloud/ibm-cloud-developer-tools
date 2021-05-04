@@ -81,7 +81,6 @@ The script will check for the following prereqs, and attempt to install them if 
 - Git command line
 - Docker command line
 - Kubernetes CLI (kubectl)
-- Kubernetes helm
 
 
 ## Usage
@@ -96,7 +95,7 @@ Where <args> is:
 
 
 If "install" (or no action provided), a full CLI installation (or update) will occur:
-  1. Pre-req check for 'git', 'docker', 'kubectl', and 'helm'
+  1. Pre-req check for 'git', 'docker', and 'kubectl'
   2. Install latest IBM Cloud 'ibmcloud' CLI
   3. Install all required plugins
   4. Defines aliases to improve useability

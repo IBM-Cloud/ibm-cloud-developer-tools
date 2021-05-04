@@ -33,7 +33,7 @@ function help {
     --trace            Eanble verbose tracing of all activity
 
   If "install", "update", or no action, a full CLI installation (or update) will occur:
-  1. Pre-req check for 'git', 'docker', 'kubectl', and 'helm'
+  1. Pre-req check for 'git', 'docker', and 'kubectl'
   2. Install latest IBM Cloud 'ibmcloud' CLI
   3. Install all required plugins 
 
@@ -124,7 +124,7 @@ function install() {
 
 
 #------------------------------------------------------------------------------
-#-- Install dependencies - git, docker, kubectl, helm.
+#-- Install dependencies - git, docker, kubectl.
 function install_deps() {
 
   [Net.ServicePointManager]::SecurityProtocol = "Tls12, Tls11, Tls, Ssl3"
@@ -172,29 +172,29 @@ function install_deps() {
     log "Install/update completed for: kubectl"
   }
 
-  #-- helm
-  log "Checking for external dependency: helm"
-  if( -not (get-command helm -erroraction 'silentlycontinue') -or $Global:FORCE) {
-    log "Installing/updating external dependency: helm"
-  [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-    $helm_url = ((Invoke-WebRequest https://github.com/helm/helm/releases -UseBasicParsing).Links.OuterHTML | Where-Object{$_ -match '.+?windows-amd64.zip'} | Select-Object -first 1).Split('"')[1]
-    log "Helm URL : $helm_url"
-    $helm_file = $helm_url.Split("/")[-1]
-    log "Helm File: $helm_file"
-    Invoke-WebRequest $helm_url -UseBasicParsing -outfile "$helm_file"
-    mkdir "C:\Program Files\helm" -ErrorAction SilentlyContinue
-    if (-not (Get-Command Expand-7Zip -ErrorAction Ignore)) {
-        Install-Package -Scope CurrentUser -Force 7Zip4PowerShell > $null
-    }
-    Expand-7Zip $helm_file .
-    $tar_file = $helm_file.Replace('.gz','')
-    Expand-7Zip $tar_file "C:\Program Files\helm"
-    Remove-Item $helm_file -erroraction 'silentlycontinue'
-    Remove-Item $tar_file  -erroraction 'silentlycontinue'
-    add_to_path("C:\Program Files\helm\windows-amd64")
-    $Global:NEEDS_REBOOT = $true
-    log "Install/update completed for: helm"
-  }
+  # #-- helm
+  # log "Checking for external dependency: helm"
+  # if( -not (get-command helm -erroraction 'silentlycontinue') -or $Global:FORCE) {
+  #   log "Installing/updating external dependency: helm"
+  # [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+  #   $helm_url = ((Invoke-WebRequest https://github.com/helm/helm/releases -UseBasicParsing).Links.OuterHTML | Where-Object{$_ -match '.+?windows-amd64.zip'} | Select-Object -first 1).Split('"')[1]
+  #   log "Helm URL : $helm_url"
+  #   $helm_file = $helm_url.Split("/")[-1]
+  #   log "Helm File: $helm_file"
+  #   Invoke-WebRequest $helm_url -UseBasicParsing -outfile "$helm_file"
+  #   mkdir "C:\Program Files\helm" -ErrorAction SilentlyContinue
+  #   if (-not (Get-Command Expand-7Zip -ErrorAction Ignore)) {
+  #       Install-Package -Scope CurrentUser -Force 7Zip4PowerShell > $null
+  #   }
+  #   Expand-7Zip $helm_file .
+  #   $tar_file = $helm_file.Replace('.gz','')
+  #   Expand-7Zip $tar_file "C:\Program Files\helm"
+  #   Remove-Item $helm_file -erroraction 'silentlycontinue'
+  #   Remove-Item $tar_file  -erroraction 'silentlycontinue'
+  #   add_to_path("C:\Program Files\helm\windows-amd64")
+  #   $Global:NEEDS_REBOOT = $true
+  #   log "Install/update completed for: helm"
+  # }
 }
 
 #------------------------------------------------------------------------------
@@ -306,7 +306,7 @@ function main {
     error "This installer requires Windows 10 or higher."
   }
 
-  #-- Check for 64-bit Platform - Dev and Helm do not have 32-bit versions.
+  #-- Check for 64-bit Platform - Dev do not have 32-bit versions.
   if ([Environment]::Is64BitProcess -ne [Environment]::Is64BitOperatingSystem) {
     error "This installer requires 64-bit Windows."
   }

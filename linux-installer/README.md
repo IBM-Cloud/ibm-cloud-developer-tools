@@ -23,12 +23,6 @@ This script performs an installation of the IBM Developer Tools CLI environment.
 
 
 ## Installation
-Before running the installation script, you should set this environment variable if you plan to deploy to Kubernetes so that the version of Helm that is installed is compatible with the Helm server version.
-
-```
-export DESIRED_VERSION=v2.4.2
-```
-
 To install the IBM Cloud Developer Tools CLI, run the following command:
 
 ```
@@ -71,7 +65,6 @@ The script will check for the following prereqs, and attempt to install them if 
 - Git command line
 - Docker command line
 - Kubernetes CLI (kubectl)
-- Kubernetes helm
 
 
 ## Usage
@@ -86,7 +79,7 @@ Where <args> is:
 
 
 If "install" (or no action provided), a full CLI installation (or update) will occur:
-  1. Pre-req check for 'git', 'docker', 'kubectl', and 'helm'
+  1. Pre-req check for 'git', 'docker', and 'kubectl'
   2. Install latest IBM Cloud 'ibmcloud' CLI
   3. Install all required plugins
   4. Defines aliases to improve useability
