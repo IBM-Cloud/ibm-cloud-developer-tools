@@ -129,13 +129,12 @@ function install_deps() {
 
   [Net.ServicePointManager]::SecurityProtocol = "Tls12, Tls11, Tls, Ssl3"
 
-  #-- git
+   #-- git
   log "Checking for external dependency: git"
   if( -not (get-command git -erroraction 'silentlycontinue') -or $Global:FORCE) {
     
     log "Installing/updating external dependency: git"
-    $gitVersion = (Invoke-WebRequest "https://git-scm.com/downloads/latest" -UseBasicParsing).Content
-    Invoke-WebRequest "https://github.com/git-for-windows/git/releases/download/v$gitVersion.windows.1/Git-$gitVersion-64-bit.exe" -UseBasicParsing -outfile "git-installer.exe"
+    Invoke-WebRequest "https://github.com/git-for-windows/git/releases/download/v2.32.0.windows.2/Git-2.32.0.2-64-bit.exe" -UseBasicParsing -outfile "git-installer.exe"
     .\git-installer.exe /SILENT /PathOption="Cmd" | Out-Null
     Remove-Item "git-installer.exe"
     $Global:NEEDS_REBOOT = $true
@@ -146,7 +145,7 @@ function install_deps() {
   log "Checking for external dependency: docker"
   if( -not(get-command docker -erroraction 'silentlycontinue') -or $Global:FORCE) {
     log "Installing/updating external dependency: docker"
-    Invoke-WebRequest "https://download.docker.com/win/stable/Docker%20for%20Windows%20Installer.exe" -UseBasicParsing -outfile "InstallDocker.exe"
+    Invoke-WebRequest "https://desktop.docker.com/win/stable/amd64/Docker%20Desktop%20Installer.exe" -UseBasicParsing -outfile "InstallDocker.exe"
     .\InstallDocker.exe | Out-Null
     $Global:NEEDS_REBOOT = $false
     log "Install/update completed for: docker"
