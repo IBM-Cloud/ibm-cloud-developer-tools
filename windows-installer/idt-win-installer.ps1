@@ -129,6 +129,18 @@ function install_deps() {
 
   [Net.ServicePointManager]::SecurityProtocol = "Tls12, Tls11, Tls, Ssl3"
 
+   #-- git
+  log "Checking for external dependency: git"
+  if( -not (get-command git -erroraction 'silentlycontinue') -or $Global:FORCE) {
+    
+    log "Installing/updating external dependency: git"
+    Invoke-WebRequest "https://github.com/git-for-windows/git/releases/download/v2.32.0.windows.2/Git-2.32.0.2-64-bit.exe" -UseBasicParsing -outfile "git-installer.exe"
+    .\git-installer.exe /SILENT /PathOption="Cmd" | Out-Null
+    Remove-Item "git-installer.exe"
+    $Global:NEEDS_REBOOT = $true
+    log "Install/update completed for: git"
+  }
+
   #-- docker
   log "Checking for external dependency: docker"
   if( -not(get-command docker -erroraction 'silentlycontinue') -or $Global:FORCE) {
