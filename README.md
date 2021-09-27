@@ -1,6 +1,7 @@
-# IBM Cloud Developer Tools
+# IBM Cloud Developer Tools [DEPRECATED]
+[![](https://img.shields.io/badge/-deprecated-critical)](https://cloud.ibm.com)
 
-[![](https://img.shields.io/badge/IBM%20Cloud-powered-blue.svg)](https://bluemix.net)
+**The IBM Cloud Developer Tools installer is no longer supported, please consider installing the IBM Cloud stand-alone client instead. See [Installing the stand-alone IBM Cloud CLI](https://cloud.ibm.com/docs/cli?topic=cli-install-ibmcloud-cli) for more information on installing the stand-alone client.**
 
 This repo provides support for the IBM Cloud Developer Tools (IDT) CLI environment. The IDT tools currently consists of the IBM Cloud CLI (ibmcloud) 'dev' and other plugins, as well as extensions to multiple IDEs.
 
