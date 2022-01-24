@@ -37,7 +37,7 @@ function help {
   Chat with us on Slack: ${SLACK_URL}, channel #developer-tools
   Submit any issues to : ${GIT_URL}/issues
 
-	!!EOF
+!!EOF
 }
 
 
@@ -114,7 +114,11 @@ function install_deps {
   #-- check for/install brew for macos
   case "$PLATFORM" in
   "Darwin")
-      install_darwin_deps
+    if [[ "${DISTRO}" == *MacPorts* ]]; then
+      install_deps_with_macports
+    else
+      install_deps_with_homebrew
+    fi
     ;;
   "Linux")
     if [[ "${DISTRO}" == *Ubuntu* || "${DISTRO}" == *Debian* ]]; then
@@ -130,7 +134,46 @@ function install_deps {
 }
 
 #------------------------------------------------------------------------------
-function install_darwin_deps {
+function install_deps_with_macports {
+  #-- GIT:
+  log "Installing/updating external dependency: git"
+  port_install git
+  log "Please review any setup requirements for 'git' from: https://git-scm.com/downloads"
+
+  #-- Docker:
+  log "Installing/updating external dependency: docker"
+  port_install docker
+  log  "Please review any setup requirements for 'docker' from: https://docs.docker.com/engine/installation/"
+
+  #-- kubectl:
+  log "Installing/updating external dependency: kubectl"
+  port_install kubectl kubectl-1.15 kubectl1.15
+  log  "Please review any setup requirements for 'kubectl' from: https://kubernetes.io/docs/tasks/tools/install-kubectl/"
+
+  #-- helm:
+  log "Installing/updating external dependency: helm"
+  port_install helm helm-2.14 helm2.14
+  log  "Please review any setup requirements for 'helm' from: https://github.com/kubernetes/helm/blob/master/docs/install.md"
+}
+
+function port_install {
+  command="$1"
+  package="$2"
+  setname="$3"
+  if [[ -z "$package" ]]; then package="$command"; fi
+  if [[ -z "$(which $command)" ]]; then
+    $SUDO port install "$package"
+  elif [[ "$FORCE" == true ]]; then
+    $SUDO port uninstall "$package"
+    $SUDO port install "$package"
+  fi
+  if [[ ! -z "$setname" ]]; then
+    $SUDO port select --set "$command" "$setname"
+  fi
+}
+
+#------------------------------------------------------------------------------
+function install_deps_with_homebrew {
     log "Checking for external dependency: brew"
     if [[ -z "$(which brew)" && -n "$(which ruby)" ]]; then
       log "'brew' installer not found, attempting to install..."
@@ -421,6 +464,12 @@ function main {
 
   case "$PLATFORM" in
   "Darwin")
+    # macOS package manager, e.g. "MacPorts", "HomeBrew"
+    if [[ "`which port`" == "/opt/local/bin/port" ]]; then
+      DISTRO="MacPorts"
+    else
+      DISTRO="HomeBrew"
+    fi
     ;;
   "Linux")
     # Linux distro, e.g "Ubuntu", "RedHatEnterpriseWorkstation", "RedHatEnterpriseServer", "CentOS", "Debian"
