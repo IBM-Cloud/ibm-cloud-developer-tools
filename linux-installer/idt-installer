@@ -164,7 +164,7 @@ function install_darwin_deps {
     log "Installing/updating external dependency: kubectl"
     if [[ -z "$(which kubectl)" || "$FORCE" == true ]]; then
       local kube_version=$(get_kubectl_version)
-      curl --progress-bar -LO https://storage.googleapis.com/kubernetes-release/release/v$kube_version/bin/darwin/amd64/kubectl
+      curl -fsSLo kubectl https://storage.googleapis.com/kubernetes-release/release/v$kube_version/bin/darwin/amd64/kubectl
       $SUDO mv ./kubectl /usr/local/bin/kubectl
       $SUDO chmod +x /usr/local/bin/kubectl
       log  "Please review any setup requirements for 'kubectl' from: https://kubernetes.io/docs/tasks/tools/install-kubectl/"
@@ -220,7 +220,7 @@ function install_deps_with_apt_get {
     log "Installing/updating external dependency: kubectl"
     if [[ -z "$(which kubectl)" || "$FORCE" == true ]]; then
       local kube_version=$(get_kubectl_version)
-      curl --progress-bar -LO https://storage.googleapis.com/kubernetes-release/release/v$kube_version/bin/linux/amd64/kubectl
+      curl -fsSLo kubectl https://storage.googleapis.com/kubernetes-release/release/v$kube_version/bin/linux/amd64/kubectl
       $SUDO mv ./kubectl /usr/local/bin/kubectl
       $SUDO chmod +x /usr/local/bin/kubectl
       log  "Please review any setup requirements for 'kubectl' from: https://kubernetes.io/docs/tasks/tools/install-kubectl/"
