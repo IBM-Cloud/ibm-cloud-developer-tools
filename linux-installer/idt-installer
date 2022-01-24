@@ -29,6 +29,8 @@ function help {
     --force          Force updates of dependencies and other settings during update
     --trace          Eanble verbose tracing of all activity
 
+
+
   If "install" (or no action provided), a full CLI installation (or update) will occur:
   1. Pre-req check for 'git', 'docker', and 'kubectl'
   2. Install latest IBM Cloud 'ibmcloud' CLI
@@ -121,12 +123,63 @@ function install_deps {
       install_deps_with_apt_get
     elif [[ "${DISTRO}" == *Red*Hat* || "${DISTRO}" == *CentOS* || "${DISTRO}" == *RHEL* || "${DISTRO}" == *Fedora* ]]; then
       install_deps_with_yum
+    elif [[ "${DISTRO}" == *Solus* ]]; then
+      install_deps_with_eopkg
     else
       error "This script has not been updated for use with your linux distribution (${DISTRO})"
     fi
     ;;
   esac
 
+}
+
+#------------------------------------------------------------------------------
+function install_deps_with_eopkg {
+    log "Checking for and updating 'eopkg' support on Linux"
+    if [[ -z "$(which eopkg)" ]]; then
+      error "'eopkg' is not found.  Thats the only linux installer I know, sorry."
+    fi
+    $SUDO eopkg ur Solus
+
+    #-- CURL:
+    log "Installing/updating external dependency: curl"
+    if [[ -z "$(which curl)" || "$FORCE" == true ]]; then
+      $SUDO eopkg it curl
+    fi
+    #-- GIT:
+    log "Installing/updating external dependency: git"
+    if [[ -z "$(which git)" || "$FORCE" == true ]]; then
+      $SUDO eopkg it git
+      log  "Please review any setup requirements for 'git' from: https://git-scm.com/downloads"
+    fi
+
+    #-- Docker:
+    log "Installing/updating external dependency: docker"
+    if [[ -z "$(which docker)" || "$FORCE" == true ]]; then
+      $SUDO eopkg it docker
+      if [ "$SUDO" ]; then
+        # Allow docker to run as a non-root user (if not running as root).
+        sudo groupadd docker 2>/dev/null
+        sudo usermod -aG docker $USER  2>/dev/null
+      else
+        log 'If you want to run docker without sudo run: "sudo groupadd docker && sudo usermod -aG docker $USER"'
+      fi
+      log  "Please review any setup requirements for 'docker' from: https://docs.docker.com/engine/installation/"
+    fi
+
+    #-- kubectl:
+    log "Installing/updating external dependency: kubectl"
+    if [[ -z "$(which kubectl)" || "$FORCE" == true ]]; then
+      $SUDO eopkg it kubectl
+      log  "Please review any setup requirements for 'kubectl' from: https://kubernetes.io/docs/tasks/tools/install-kubectl/"
+    fi
+
+    #-- helm:
+    log "Installing/updating external dependency: helm"
+    if [[ -z "$(which helm)" || "$FORCE" == true ]]; then
+      curl -fsSL https://raw.githubusercontent.com/kubernetes/helm/master/scripts/get | bash
+      log  "Please review any setup requirements for 'helm' from: https://github.com/kubernetes/helm/blob/master/docs/install.md"
+    fi
 }
 
 #------------------------------------------------------------------------------
@@ -186,16 +239,8 @@ function install_deps_with_apt_get {
     if [[ -z "$(which apt-get)" ]]; then
       error "'apt-get' is not found.  That's the only Debian/Ubuntu linux installer I know, sorry."
     fi
-    $SUDO apt-get -y -qq update > /dev/null
     if [[ -z "$(which add-apt-repository)" ]]; then
-      if [ "$(apt-cache search software-properties-common | wc -l)" != "0" ]; then
-        log "Installing package: software-properties-common"
-        $SUDO apt-get install -yqq software-properties-common > /dev/null 2>&1
-      fi
-      if [ "$(apt-cache search python-software-properties | wc -l)" != "0" ]; then
-        log "Installing package: python-software-properties"
-        $SUDO apt-get install -yqq python-software-properties > /dev/null 2>&1
-      fi
+      $SUDO apt-get install -y software-properties-common python-software-properties
     fi
     $SUDO add-apt-repository -y ppa:git-core/ppa
     $SUDO apt-get -y update
@@ -232,6 +277,44 @@ function install_deps_with_apt_get {
     #   curl -fsSL https://raw.githubusercontent.com/kubernetes/helm/master/scripts/get | bash
     #   log  "Please review any setup requirements for 'helm' from: https://github.com/kubernetes/helm/blob/master/docs/install.md"
     # fi
+}
+
+#------------------------------------------------------------------------------
+function install_deps_with_eopkg {
+    log "Checking for and updating 'eopkg' support on Linux"
+    if [[ -z "$(which eopkg)" ]]; then
+      error "'eopkg' is not found.  Thats the only linux installer I know, sorry."
+    fi
+    $SUDO eopkg ur Solus
+
+    #-- CURL:
+    log "Installing/updating external dependency: curl"
+    if [[ -z "$(which curl)" || "$FORCE" == true ]]; then
+      $SUDO eopkg it curl
+    fi
+    #-- GIT:
+    log "Installing/updating external dependency: git"
+    if [[ -z "$(which git)" || "$FORCE" == true ]]; then
+      $SUDO eopkg it git
+      log  "Please review any setup requirements for 'git' from: https://git-scm.com/downloads"
+    fi
+
+    #-- Docker:
+    install_docker
+
+    #-- kubectl:
+    log "Installing/updating external dependency: kubectl"
+    if [[ -z "$(which kubectl)" || "$FORCE" == true ]]; then
+      $SUDO eopkg it kubectl
+      log  "Please review any setup requirements for 'kubectl' from: https://kubernetes.io/docs/tasks/tools/install-kubectl/"
+    fi
+
+    #-- helm:
+    log "Installing/updating external dependency: helm"
+    if [[ -z "$(which helm)" || "$FORCE" == true ]]; then
+      curl -fsSL https://raw.githubusercontent.com/kubernetes/helm/master/scripts/get | bash
+      log  "Please review any setup requirements for 'helm' from: https://github.com/kubernetes/helm/blob/master/docs/install.md"
+    fi
 }
 
 #------------------------------------------------------------------------------
@@ -425,8 +508,8 @@ function main {
   "Linux")
     # Linux distro, e.g "Ubuntu", "RedHatEnterpriseWorkstation", "RedHatEnterpriseServer", "CentOS", "Debian"
     DISTRO=$(lsb_release -ds 2>/dev/null || cat /etc/*release 2>/dev/null | head -n1 || uname -om || echo "")
-    if [[ "$DISTRO" != *Ubuntu* &&  "$DISTRO" != *Red*Hat* && "$DISTRO" != *CentOS* && "$DISTRO" != *Debian* && "$DISTRO" != *RHEL* && "$DISTRO" != *Fedora* ]]; then
-      warn "Linux has only been tested on Ubuntu, RedHat, Centos, Debian and Fedora distrubutions please let us know if you use this utility on other Distros"
+    if [[ "$DISTRO" != *Ubuntu* && "$DISTRO" != *Red*Hat* && "$DISTRO" != *CentOS* && "$DISTRO" != *Debian* && "$DISTRO" != *RHEL* && "$DISTRO" != *Fedora* && "$DISTRO" != *Solus* ]]; then
+      warn "Linux has only been tested on Ubuntu, RedHat, Centos, Debian, Solus and Fedora distrubutions please let us know if you use this utility on other Distros"
     fi
     ;;
   *)
